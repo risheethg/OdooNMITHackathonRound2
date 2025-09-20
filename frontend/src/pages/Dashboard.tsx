@@ -54,6 +54,12 @@ export interface ManufacturingOrderCreate {
   quantity: number;
 }
 
+export interface ProductCreate {
+  name: string;
+  type: 'Raw Material' | 'Finished Good';
+  description?: string;
+}
+
 interface ApiResponse<T> {
   data: T;
   message: string;
@@ -123,6 +129,23 @@ export const getProducts = async (token: string): Promise<Product[]> => {
   const result: ApiResponse<Product[]> = await response.json();
   return result.data;
 }
+
+export const createProduct = async (productData: ProductCreate, token: string): Promise<Product> => {
+  const response = await fetch(`${API_URL}/products/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(productData),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to create product');
+  }
+  const result: ApiResponse<Product> = await response.json();
+  return result.data;
+};
 
 
 // 3. Placeholder Components (to resolve import errors)
@@ -212,6 +235,7 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const [isCreateProductModalOpen, setCreateProductModalOpen] = useState(false);
   const { idToken } = useAuth();
   const queryClient = useQueryClient();
 
@@ -291,6 +315,37 @@ const Dashboard = () => {
     });
   }
 
+  const { mutate: createNewProduct, isPending: isCreatingProduct } = useMutation({
+    mutationFn: (productData: ProductCreate) => createProduct(productData, idToken!),
+    onSuccess: () => {
+      toast.success("Product created successfully!");
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setCreateProductModalOpen(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to create product: ${error.message}`);
+    }
+  });
+
+  const handleCreateProductSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get('name') as string;
+    const type = formData.get('type') as 'Raw Material' | 'Finished Good';
+    const description = formData.get('description') as string;
+
+    if (!name || !type) {
+      toast.error("Product Name and Type are required.");
+      return;
+    }
+
+    createNewProduct({
+      name,
+      type,
+      description,
+    });
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex items-center justify-between">
@@ -298,58 +353,101 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold">Manufacturing Orders</h1>
           <p className="text-muted-foreground">Manage and track all manufacturing orders</p>
         </div>
-        <Dialog open={isCreateModalOpen} onOpenChange={setCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-primary to-primary-hover">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Order
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Manufacturing Order</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="product_id" className="block text-sm font-medium text-gray-700 mb-1">
-                  Product
-                </label>
-                <Select name="product_id" required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a product to manufacture" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingProducts ? (
-                      <SelectItem value="loading" disabled>Loading products...</SelectItem>
-                    ) : (
-                      products.map(product => (
-                        <SelectItem key={product._id} value={product._id}>
-                          {product.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantity
-                </label>
-                <Input
-                  id="quantity"
-                  name="quantity"
-                  type="number"
-                  placeholder="e.g., 10"
-                  required
-                  min="1"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={isCreating}>
-                {isCreating ? "Creating..." : "Create Order"}
+        <div className="flex gap-2">
+          {/* Create Product Modal */}
+          <Dialog open={isCreateProductModalOpen} onOpenChange={setCreateProductModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Product
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Product</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateProductSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                  <Input id="name" name="name" placeholder="e.g., Wooden Table" required />
+                </div>
+                <div>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                  <Select name="type" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a product type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Finished Good">Finished Good</SelectItem>
+                      <SelectItem value="Raw Material">Raw Material</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                  <Input id="description" name="description" placeholder="e.g., A sturdy oak dining table" />
+                </div>
+                <Button type="submit" className="w-full" disabled={isCreatingProduct}>
+                  {isCreatingProduct ? "Creating..." : "Create Product"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Create Order Modal */}
+          <Dialog open={isCreateModalOpen} onOpenChange={setCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-primary to-primary-hover">
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Order
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Create New Manufacturing Order</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="product_id" className="block text-sm font-medium text-gray-700 mb-1">
+                    Product
+                  </label>
+                  <Select name="product_id" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a product to manufacture" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {isLoadingProducts ? (
+                        <SelectItem value="loading" disabled>Loading products...</SelectItem>
+                      ) : (
+                        products.map(product => (
+                          <SelectItem key={product._id} value={product._id}>
+                            {product.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantity
+                  </label>
+                  <Input
+                    id="quantity"
+                    name="quantity"
+                    type="number"
+                    placeholder="e.g., 10"
+                    required
+                    min="1"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isCreating}>
+                  {isCreating ? "Creating..." : "Create Order"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
