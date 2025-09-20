@@ -1,7 +1,7 @@
 import os
-import logging
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import logging
 
 class Settings(BaseSettings):
     """
@@ -12,10 +12,7 @@ class Settings(BaseSettings):
     # --- MongoDB Settings
     MONGO_URI: str
     MONGO_DB_NAME: str
-    
-    # --- Logger Settings
     LOGGER: int = logging.INFO 
-    
     # --- Firebase Settings
     # Defaults to 'serviceAccountToken.json' if the env var is not set.
     GOOGLE_APPLICATION_CREDENTIALS: str = "serviceAccountToken.json"
@@ -40,4 +37,5 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8"
     )
 
+# Create a single, reusable instance of the settings
 settings = Settings()
