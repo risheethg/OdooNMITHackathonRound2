@@ -18,7 +18,7 @@ class StockLedgerService:
         Retrieves the entire history of stock movements.
         """
         logs.define_logger(20, "Fetching stock ledger history.", loggName=inspect.stack()[0])
-        history = await self.repository.get_all()
+        history = self.repository.get_all()
         if not history:
             return []
         return history
@@ -28,7 +28,7 @@ class StockLedgerService:
         Calculates and retrieves the current stock levels for all products.
         """
         logs.define_logger(20, "Calculating current stock levels.", loggName=inspect.stack()[0])
-        availability = await self.repository.get_stock_availability()
+        availability = self.repository.get_stock_availability()
         if not availability:
             # If there are no ledger entries, it means stock is zero for all items.
             return []

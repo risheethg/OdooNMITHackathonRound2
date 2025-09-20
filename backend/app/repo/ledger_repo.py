@@ -13,7 +13,7 @@ class StockLedgerRepository(BaseRepository):
             super().__init__(collection=db["ledger"])
 
 
-    async def get_stock_availability(self) -> List[Dict]:
+    def get_stock_availability(self) -> List[Dict]:
         """
         Calculates the current stock level for all products using an aggregation pipeline.
 
@@ -37,7 +37,7 @@ class StockLedgerRepository(BaseRepository):
                 }
             ]
             cursor = self.collection.aggregate(pipeline)
-            results = await cursor.to_list(length=None)
+            results = cursor.to_list(length=None)
             return results
         except Exception as e:
             logs.define_logger(50, f"Error in get_stock_availability: {e}", loggName=inspect.stack()[0])

@@ -56,14 +56,18 @@ class ManufacturingOrderService:
             work_orders_to_create.append(work_order)
         
         new_mo_model = ManufacturingOrder(
-            product_id=order_data.product_id,
-            quantity_to_produce=order_data.quantity,
-            bom_snapshot=bom,
-            work_orders=work_orders_to_create
+                product_id=order_data.product_id,
+                quantity_to_produce=order_data.quantity,
+                bom_snapshot=bom,
+                work_orders=work_orders_to_create
         )
-        mo_dict_to_save = new_mo_model.model_dump(by_alias=True, exclude_none=True)
-        del mo_dict_to_save['_id']
         
+        # Convert the model to a dictionary for MongoDB
+        mo_dict_to_save = new_mo_model.model_dump(by_alias=True, exclude_none=True)
+        
+        # REMOVED: del mo_dict_to_save['_id'] -> This line caused the error
+
+        # Create the document in the database
         result = self.mo_repo.create(mo_dict_to_save)
         created_id = str(result.inserted_id)
         
