@@ -1,9 +1,13 @@
 from typing import Optional
 from app.models.user_models import UserCreate, User, UserRole
 from app.core.firebase_connection import get_firestore_client
+from pymongo.database import Database
+from fastapi import Depends
+from app.core.db_connection import get_db
 
 class UserRepository:
-    
+    def __init__(self, db: Database):
+        self.db = db
     async def get(self, uid: str) -> Optional[User]:
         """
         Get a user profile from Firestore using their Firebase Auth UID.
@@ -60,4 +64,7 @@ class UserRepository:
         updated_user = await self.get(uid)
         return updated_user
 
-users_repo = UserRepository()
+def get_user_repo(db: Database = Depends(get_db)) -> UserRepository:
+    return UserRepository(db)
+
+users_repo = UserRepository(get_db())

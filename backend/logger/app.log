@@ -321,3 +321,22 @@
 2025-09-20 19:32:30,196 - APP-BE - INFO - IP: 127.0.0.1 - URL: POST http://127.0.0.1:8000/boms/ - MESSAGE: BOM created successfully. - PID: 73432 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/routes/bom_route.py:create_bom - RESPONSE: {'_id': '68ceb3f6094233e81b649ca8', 'finishedProductId': '68cea3210cf24e31b9d4f56f', 'components': [{'productId': '68ce6e620d9360a8bd2df434', 'quantity': 4}, {'productId': '68ce6e620d9360a8bd2df434', 'quantity': 1}, {'productId': '68ce6e620d9360a8bd2df434', 'quantity': 12}], 'operations': [{'name': 'Assembly', 'duration': 60}, {'name': 'Painting', 'duration': 30}], 'recipe': 'Standard wooden table assembly process', 'created_at': datetime.datetime(2025, 9, 20, 14, 2, 30, 192000), 'updated_at': datetime.datetime(2025, 9, 20, 14, 2, 30, 192000)}
 2025-09-20 21:07:18,987 - APP-BE - INFO - MESSAGE: Application startup... - PID: 3468 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
 2025-09-20 21:07:18,988 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 3468 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:28:27,010 - APP-BE - INFO - MESSAGE: Application startup... - PID: 3852 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:28:27,011 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 3852 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:29:17,568 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: [WinError 10051] A socket operation was attempted to an unreachable network
+2025-09-20 22:29:18,597 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: [WinError 10051] A socket operation was attempted to an unreachable network
+2025-09-20 22:29:20,683 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [WinError 10051] A socket operation was attempted to an unreachable network
+2025-09-20 22:29:20,684 - google.auth._default - WARNING - Authentication failed using Compute Engine authentication due to unavailable metadata server.
+2025-09-20 22:33:25,838 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 3852 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:33:25,838 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 3852 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:33:27,500 - APP-BE - INFO - MESSAGE: Application startup... - PID: 37596 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:33:27,501 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 37596 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:36:14,255 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 37596 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:36:14,255 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 37596 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:36:15,938 - APP-BE - INFO - MESSAGE: Application startup... - PID: 30188 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 22:36:17,449 - APP-BE - INFO - MESSAGE: Application startup... - PID: 11464 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 23:29:15,350 - APP-BE - INFO - MESSAGE: Application startup... - PID: 29684 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 23:58:54,872 - APP-BE - INFO - MESSAGE: Application startup... - PID: 32832 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 23:59:00,458 - APP-BE - INFO - MESSAGE: Application startup... - PID: 8180 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-20 23:59:06,028 - APP-BE - INFO - MESSAGE: Application startup... - PID: 24580 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan
+2025-09-21 00:01:39,849 - APP-BE - INFO - MESSAGE: Application startup... - PID: 27936 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\main.py:lifespan

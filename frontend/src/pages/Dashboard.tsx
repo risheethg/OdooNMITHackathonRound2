@@ -1,40 +1,57 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Filter, Edit, Trash2, Eye, Circle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Plus, Search, Filter } from "lucide-react";
 import { KPICard } from "@/components/dashboard/KPICard";
 import { OrdersTable } from "@/components/dashboard/OrdersTable";
+import { useQuery } from "@tanstack/react-query";
+import { getManufacturingOrders, ManufacturingOrder } from "@/services/manufacturingOrders";
+import { useAuth } from "@/Root";
 
 const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const { idToken } = useAuth();
 
-  const kpiData = [
-    {
-      title: "Orders Completed",
-      value: "24",
-      change: "+12%",
-      trend: "up" as const,
-      color: "success" as const,
-    },
-    {
-      title: "In Progress",
-      value: "8",
-      change: "-2",
-      trend: "down" as const,
-      color: "warning" as const,
-    },
-    {
-      title: "Delayed",
-      value: "3",
-      change: "+1",
-      trend: "up" as const,
-      color: "destructive" as const,
-    },
-  ];
+  // A single query for all data, which will be filtered on the client for KPIs
+  const { data: allOrders = [], isLoading: isLoadingKpis } = useQuery<ManufacturingOrder[], Error>({
+    queryKey: ['manufacturingOrders', 'all', ''], // Fetch all for KPIs
+    queryFn: () => getManufacturingOrders('all', '', idToken!),
+    enabled: !!idToken,
+  });
+
+  const kpiData = useMemo(() => {
+    if (isLoadingKpis) return [];
+    const completed = allOrders.filter(o => o.status === 'completed').length;
+    const inProgress = allOrders.filter(o => o.status === 'progress').length;
+    const delayed = allOrders.filter(o => o.status === 'delayed').length;
+
+    return [
+      {
+        title: "Orders Completed",
+        value: completed.toString(),
+        change: "", // You might calculate this based on a previous period
+        trend: "up" as const,
+        color: "success" as const,
+      },
+      {
+        title: "In Progress",
+        value: inProgress.toString(),
+        change: "",
+        trend: "up" as const,
+        color: "warning" as const,
+      },
+      {
+        title: "Delayed",
+        value: delayed.toString(),
+        change: "",
+        trend: "up" as const,
+        color: "destructive" as const,
+      },
+    ];
+  }, [allOrders, isLoadingKpis]);
 
   return (
     <div className="space-y-6">
@@ -61,6 +78,7 @@ const Dashboard = () => {
       <Card>
         <CardHeader>
           <CardTitle>Order Management</CardTitle>
+          <CardDescription>View, search, and filter all manufacturing orders.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
