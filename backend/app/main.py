@@ -9,7 +9,6 @@ from app.core.db_connection import DBConnection
 # Import the Firebase initialization function
 from app.core.firebase_app import initialize_firebase
 # Import the authentication routes
-from app.routes import auth_routes
 from pymongo import MongoClient
 from app.core.db_connection import DBConnection
 
@@ -47,7 +46,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.include_router(auth_routes.router, prefix="/auth")
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
 app.include_router(manufacture_router)

@@ -10,6 +10,7 @@ class WorkOrderBase(BaseModel):
     operation_name: str = Field(..., description="Name of the operation (e.g., Assembly, Painting)")
     work_center_id: str = Field(..., description="Reference to the WorkCenter's ID")
     status: Literal["pending", "in_progress", "paused", "done"] = Field(default="pending")
+    sequence: int = Field(default=0, description="The order of this task in the sequence")
 
 class WorkOrderInDB(BaseDBModel, WorkOrderBase):
     """Work Order model as it is stored in the database."""

@@ -14,6 +14,7 @@ class WorkOrder(BaseDBModel):
     operation_name: str = Field(..., description="Name of the operation")
     work_center_id: str = Field(..., description="Reference to a WorkCenter's ID")
     status: Literal["pending", "in_progress", "paused", "done"] = Field(default="pending")
+    sequence: int = Field(default=0, description="The order of this task in the sequence")
 
 class ManufacturingOrder(BaseDBModel):
     """Represents a full production job to create a specific quantity of a product"""
@@ -21,7 +22,7 @@ class ManufacturingOrder(BaseDBModel):
     quantity_to_produce: int = Field(..., description="Quantity to produce")
     status: Literal["planned", "in_progress", "done", "cancelled"] = Field(default="planned")
     bom_snapshot: BillOfMaterials = Field(..., description="A copy of the BOM at the time of creation")
-    work_orders_ids: List[str] = Field(default=[], description="List of work orders ids")
+    work_orders: List[WorkOrder] = Field(default=[], description="List of work orders")
 
 class ManufacturingOrderCreate(BaseCreateModel):
     """Defines the shape of the input data required to create a new MO"""
