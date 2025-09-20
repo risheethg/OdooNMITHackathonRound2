@@ -9,6 +9,7 @@ from app.core.db_connection import DBConnection
 #importing all routes
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
+from app.routes.user_routes import router as user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,6 +50,8 @@ def health_check():
 #include the routes
 app.include_router(work_order_router)
 app.include_router(work_centre_router)
+app.include_router(user_router)
+
 
 # This block allows running the app directly with `python main.py`
 if __name__ == "__main__":
