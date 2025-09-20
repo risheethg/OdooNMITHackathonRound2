@@ -14,6 +14,8 @@ import BOM from "./pages/BOM";
 import Analytics from "./pages/Analytics";
 import AppLayout from "./components/layout/AppLayout";
 import NotFound from "./pages/NotFound";
+import { Root } from "./Root";
+import ProtectedRoute from "./ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,24 +26,28 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Authentication Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          
-          {/* Main Application Routes */}
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="work-orders" element={<WorkOrders />} />
-            <Route path="work-centers" element={<WorkCenters />} />
-            <Route path="stock-ledger" element={<StockLedger />} />
-            <Route path="bom" element={<BOM />} />
-            <Route path="analytics" element={<Analytics />} />
+          <Route element={<Root />}>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="work-orders" element={<WorkOrders />} />
+                <Route path="work-centers" element={<WorkCenters />} />
+                <Route path="stock-ledger" element={<StockLedger />} />
+                <Route path="bom" element={<BOM />} />
+                <Route path="analytics" element={<Analytics />} />
+              </Route>
+            </Route>
+
+            {/* Catch-all Route */}
+            <Route path="*" element={<NotFound />} />
           </Route>
-          
-          {/* Catch-all Route */}
-          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

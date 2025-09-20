@@ -1,2 +1,3 @@
-/pycache/
+.env
+serviceAccountKey.json
 __pycache__/
