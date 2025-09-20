@@ -1,4 +1,6 @@
 from pymongo.database import Database
+from pymongo.collection import Collection
+from pymongo.results import InsertOneResult
 from .base import BaseRepository
 
 class BOMRepository(BaseRepository):
