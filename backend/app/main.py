@@ -20,6 +20,8 @@ from app.routes.manufacture_routes import router as manufacture_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.stock_routes import router as stock_router
 from app.core.logger import logs 
+from app.service.automation_service import AutomationService
+from app.service.polling_service import polling_service
 import inspect
 import os
 
@@ -28,13 +30,22 @@ async def lifespan(app: FastAPI):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Application startup...", loggName=log_info, pid=os.getpid())
     initialize_firebase()
-    app.state.db_connection = DBConnection()
+    db_connection = DBConnection()
+    app.state.db_connection = db_connection
     logs.define_logger(level=logging.INFO, message="MongoDB connection established.", loggName=log_info, pid=os.getpid())
+    
+    # --- AUTOMATION: Setup and start the polling service ---
+    db = db_connection.get_database()
+    automation_service = AutomationService(db)
+    polling_service.register_task(automation_service.polling_task)
+    await polling_service.start_polling()
     
     yield
     
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Application shutdown...", loggName=log_info, pid=os.getpid())
+    # --- AUTOMATION: Stop the polling service ---
+    await polling_service.stop_polling()
     if DBConnection._client:
         DBConnection._client.close()
         logs.define_logger(level=logging.INFO, message="MongoDB connection closed.", loggName=log_info, pid=os.getpid())

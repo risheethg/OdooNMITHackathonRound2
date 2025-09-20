@@ -1,7 +1,7 @@
 # app/services/wo_service.py
 
 import inspect
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from fastapi import HTTPException, status, Request # Import Request
 from pymongo.database import Database
@@ -22,44 +22,28 @@ class WorkOrderService:
         self.mo_repo = ManufacturingOrderRepository(db)
         self.mo_service = ManufacturingOrderService(db)
 
-    async def start_manufacturing_process(self, mo_id: str, request: Request = None) -> Dict[str, Any]:
+    def get_work_orders(self, mo_id: str = None) -> List[Dict[str, Any]]:
         """
-        Starts the process for a given MO by updating its status and the status
-        of its first work order.
+        Retrieves work orders. If mo_id is provided, it fetches work orders for
+        that specific manufacturing order, sorted by sequence. Otherwise, it
+        fetches all work orders.
         """
-        logs.define_logger(
-            level=20, # INFO level
-            message=f"Attempting to start process for MO ID: {mo_id}",
-            loggName=inspect.stack()[0],
-            request=request
-        )
-
-        # 1. Validate the Manufacturing Order
-        mo = self.mo_repo.get_by_id(mo_id)
-        if not mo:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Manufacturing Order {mo_id} not found.")
-        
-        if mo.get("status") != "planned":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"MO must be in 'planned' state. Current state: {mo.get('status')}")
-
-        # 2. Find associated Work Orders
-        work_orders = self.wo_repo.find_by_mo_id(mo_id)
-        if not work_orders:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No work orders found for this MO. Cannot start process.")
-
-        # 3. Update statuses
-        self.mo_repo.update(mo_id, {"status": "in_progress"})
-        first_wo_id = str(work_orders[0]["_id"])
-        self.wo_repo.update(first_wo_id, {"status": "in_progress"})
-
-        logs.define_logger(
-            level=20,
-            message=f"Process for MO {mo_id} started. First WO {first_wo_id} is now 'in_progress'.",
-            loggName=inspect.stack()[0],
-            request=request
-        )
-
-        return {"message": "Manufacturing process started successfully.", "mo_id": mo_id, "first_wo_id": first_wo_id}
+        if mo_id:
+            logs.define_logger(
+                level=20,
+                message=f"Fetching work orders for MO ID: {mo_id}",
+                loggName=inspect.stack()[0]
+            )
+            # find_by_mo_id already sorts by sequence
+            return self.wo_repo.find_by_mo_id(mo_id)
+        else:
+            logs.define_logger(
+                level=20,
+                message="Fetching all work orders",
+                loggName=inspect.stack()[0]
+            )
+            # get_all does not sort, which is fine for a general listing.
+            return self.wo_repo.get_all()
 
     async def update_work_order_status(self, wo_id: str, new_status: str, request: Request = None) -> Dict[str, Any]:
         """

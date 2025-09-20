@@ -82,12 +82,24 @@ class ManufacturingOrderService:
         # Create the document in the database
         result = self.mo_repo.create(mo_dict_to_save)
         created_id = str(result.inserted_id)
+
+        # --- AUTOMATION STEP 1: Create and immediately start the process ---
+
         # Now create the corresponding documents in the 'work_orders' collection
+        first_wo_id = None
         for wo_model in work_orders_to_create:
             # The wo_model is a Pydantic model, convert it to a dict
             wo_data = wo_model.model_dump(exclude_none=True)
             wo_data['mo_id'] = created_id
-            self.wo_repo.create(wo_data)
+            wo_result = self.wo_repo.create(wo_data)
+            if wo_data.get("sequence") == 0:
+                first_wo_id = str(wo_result.inserted_id)
+
+        # Automatically set the MO and the first WO to 'in_progress'
+        if first_wo_id:
+            self.mo_repo.update(created_id, {"status": "in_progress"})
+            self.wo_repo.update(first_wo_id, {"status": "in_progress"})
+            logs.define_logger(20, f"Automatically started MO {created_id} and first WO {first_wo_id}", loggName=inspect.stack()[0])
         
         return {"mo_id": created_id}
 

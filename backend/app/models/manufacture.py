@@ -13,7 +13,7 @@ class WorkOrder(BaseDBModel):
     """Represents a single task or step within a larger Manufacturing Order"""
     operation_name: str = Field(..., description="Name of the operation")
     work_center_id: str = Field(..., description="Reference to a WorkCenter's ID")
-    status: Literal["pending", "in_progress", "paused", "done"] = Field(default="pending")
+    status: Literal["pending", "in_progress", "processing", "paused", "done"] = Field(default="pending")
     sequence: int = Field(default=0, description="The order of this task in the sequence")
 
 class ManufacturingOrder(BaseDBModel):
