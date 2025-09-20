@@ -6,6 +6,7 @@ from ..repo.manufacture_repo import ManufacturingOrderRepository
 from ..repo.product_repo import ProductRepository
 from ..repo.bom_repo import BOMRepository
 from ..repo.ledger_repo import StockLedgerRepository
+from ..repo.work_centre_repo import WorkCentreRepository
 from ..models.manufacture import ManufacturingOrderCreate, ManufacturingOrder, WorkOrder, BillOfMaterials
 from ..models.ledger_model import StockLedgerEntryCreate
 from ..core.logger import logs
@@ -20,6 +21,7 @@ class ManufacturingOrderService:
         self.product_repo = ProductRepository(db)
         self.bom_repo = BOMRepository(db)
         self.stock_repo = StockLedgerRepository(db)
+        self.wc_repo = WorkCentreRepository(db)
 
     async def create_manufacturing_order(self, order_data: ManufacturingOrderCreate) -> Dict[str, Any]:
         logs.define_logger(20, "Executing create_manufacturing_order service", loggName=inspect.stack()[0])
@@ -49,9 +51,16 @@ class ManufacturingOrderService:
         # Create work orders from BOM operations
         work_orders_to_create = []
         for op in bom.operations:
+            operation_name = op.get('name', op.get('operation_name', 'Unknown Operation'))
+            
+            # Find work center by operation name
+            work_center = self.wc_repo.find_one({"operation": operation_name})
+            if not work_center:
+                raise HTTPException(status_code=404, detail=f"Work Center for operation '{operation_name}' not found.")
+
             work_order = WorkOrder(
-                operation_name=op.get('name', op.get('operation_name', 'Unknown Operation')),
-                work_center_id=op.get('work_center_id', 'default_work_center')
+                operation_name=operation_name,
+                work_center_id=str(work_center["_id"])
             )
             work_orders_to_create.append(work_order)
         
