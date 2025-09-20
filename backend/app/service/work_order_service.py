@@ -4,9 +4,9 @@ import inspect
 from datetime import datetime, timezone
 from bson import ObjectId
 from app.core.logger import logs
-from app.core.response_model import response
-from .work_order_repo import WorkOrderRepository, get_work_order_repo
-from .work_order_schema import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema, WorkOrderResponseSchema
+from ..utils.response_model import response
+from ..repo.work_order_repo import WorkOrderRepository, get_work_order_repo
+from ..models.work_order_model import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema, WorkOrderResponseSchema
 
 class WorkOrderService:
     def __init__(self, repo: WorkOrderRepository):

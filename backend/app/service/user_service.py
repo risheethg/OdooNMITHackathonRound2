@@ -4,7 +4,6 @@ import inspect
 from bson import ObjectId
 from app.core.logger import logs
 from app.utils.response_model import response
-from app.core.security import get_password_hash  # <-- Import the hashing function
 from app.repo.user_repo import UserRepository, get_user_repo
 from app.models.user_model import CreateUserSchema, UserResponseSchema
 
@@ -19,11 +18,8 @@ class UserService:
             if existing_user:
                 return response.failure("A user with this email already exists.", status_code=400)
 
-            # 2. Hash the password before storing it
-            hashed_password = get_password_hash(data.password)
-            
             user_data = data.model_dump()
-            user_data["password"] = hashed_password  # <-- Replace plain password with the hash
+            user_data.pop("password", None)  # Remove password before saving
 
             result = self.repo.create(user_data)
             new_id = result.inserted_id

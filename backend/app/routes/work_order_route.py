@@ -3,8 +3,8 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from .work_order_service import WorkOrderService, get_work_order_service
-from .work_order_schema import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema
+from ..service.work_order_service import WorkOrderService, get_work_order_service
+from ..models.work_order_model import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema
 
 router = APIRouter(
     prefix="/work-orders",
