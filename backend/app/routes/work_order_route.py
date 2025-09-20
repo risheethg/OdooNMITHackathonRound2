@@ -1,31 +1,31 @@
 # app/api/routes/wo_router.py
 
-from fastapi import APIRouter, Depends, status, Body
-from typing import Dict, Any
+from fastapi import APIRouter, Depends, status, Body, Query
+from typing import Dict, Any, List
 
 from pymongo.database import Database
 from app.core.db_connection import get_db # Assuming a dependency to get the DB
 from app.service.work_order_service import WorkOrderService
-from app.models.work_order_model import WorkOrderUpdate, StartProcessPayload
+from app.models.work_order_model import WorkOrderUpdate, WorkOrderInDB
 
 router = APIRouter(
     prefix="/work-orders",
     tags=["Work Orders"]
 )
 
-@router.post(
-    "/start-process",
-    summary="Start a Manufacturing Process",
-    description="Triggers the start of a planned MO, setting its status to 'in_progress'.",
-    response_model=Dict[str, Any],
+@router.get(
+    "/",
+    summary="Get All Work Orders",
+    description="Retrieves a list of all work orders. Can be filtered by `mo_id` to see the sequence of subprocesses and their statuses for a specific manufacturing order.",
+    response_model=List[WorkOrderInDB],
     status_code=status.HTTP_200_OK
 )
-async def start_manufacturing_process(
-    payload: StartProcessPayload,
+def get_all_work_orders(
+    mo_id: str = Query(None, description="Filter work orders by Manufacturing Order ID"),
     db: Database = Depends(get_db)
 ):
     service = WorkOrderService(db)
-    return await service.start_manufacturing_process(payload.mo_id)
+    return service.get_work_orders(mo_id=mo_id)
 
 @router.patch(
     "/{wo_id}/status",
