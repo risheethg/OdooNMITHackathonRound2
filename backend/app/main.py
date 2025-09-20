@@ -1,10 +1,13 @@
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from pymongo import MongoClient
 
 # Importing the connection manager from the core directory
-from core.db_connection import DBConnection
+from app.core.db_connection import DBConnection
+# Import the Firebase initialization function
+from app.core.firebase_app import initialize_firebase
+# Import the authentication routes
+from app.routes import auth_routes
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,6 +16,8 @@ async def lifespan(app: FastAPI):
     This is the recommended way to manage resources like database connections.
     """
     print("Application startup...")
+    # Initialize Firebase Admin SDK
+    initialize_firebase()
     # Initialize the database connection on startup
     # The DBConnection class uses a singleton pattern, so this initializes it once.
     app.state.db_connection = DBConnection()
@@ -33,6 +38,9 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Include the authentication router
+app.include_router(auth_routes.router, prefix="/auth")
 
 @app.get("/", tags=["Health Check"])
 def health_check():
