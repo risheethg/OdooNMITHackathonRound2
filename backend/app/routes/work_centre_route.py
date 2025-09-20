@@ -1,9 +1,9 @@
 # app/work_centres/work_centre_router.py
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from app.service.work_centre_service import WorkCentreService, get_work_centre_service
 from app.models.work_centre_model import CreateWorkCentreSchema
+from app.utils.response_model import response
 
 router = APIRouter(
     prefix="/work-centres",
@@ -18,8 +18,11 @@ def create_work_centre(
     """
     Create a new Work Centre.
     """
-    result = service.create_work_centre(data)
-    return JSONResponse(status_code=result["status_code"], content=result)
+    try:
+        work_centre = service.create_work_centre(data)
+        return response.success(data=work_centre, message="Work centre created successfully.", status_code=201)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/")
 def get_all_work_centres(
@@ -28,8 +31,11 @@ def get_all_work_centres(
     """
     Retrieve a list of all Work Centres.
     """
-    result = service.get_all_work_centres()
-    return JSONResponse(status_code=result["status_code"], content=result)
+    try:
+        work_centres = service.get_all_work_centres()
+        return response.success(data=work_centres)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{item_id}")
@@ -40,5 +46,10 @@ def get_work_centre(
     """
     Retrieve a single Work Centre by its unique ID.
     """
-    result = service.get_work_centre_by_id(item_id)
-    return JSONResponse(status_code=result["status_code"], content=result)
+    try:
+        work_centre = service.get_work_centre_by_id(item_id)
+        if work_centre:
+            return response.success(data=work_centre)
+        return response.failure(message="Work centre not found", status_code=404)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
