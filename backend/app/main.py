@@ -19,6 +19,7 @@ from app.routes import product_routes, bom_route
 from app.routes.manufacture_routes import router as manufacture_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.stock_routes import router as stock_router
+from app.routes.inventory_route import router as inventory_router
 from app.core.logger import logs 
 import inspect
 import os
@@ -51,6 +52,7 @@ app.include_router(bom_route.router)
 app.include_router(manufacture_router)
 app.include_router(ledger_router)
 app.include_router(stock_router)
+app.include_router(inventory_router)
 
 @app.get("/", tags=["Health Check"])
 def health_check():
