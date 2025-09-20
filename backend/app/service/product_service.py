@@ -7,5 +7,7 @@ class ProductService:
         self.repo = repo
 
     def create_product(self, product: Product) -> InsertOneResult:
-        product_data = product.dict(by_alias=True)
-        return self.repo.create(product_data)
+        """
+        Creates a new product in the database.
+        """
+        return self.repo.create(product.dict(by_alias=True))
