@@ -1,14 +1,17 @@
 import inspect
 from typing import List, Dict
-from core.logger import logs
-from repo.base import BaseRepository
+from pymongo.database import Database
+from ..core.logger import logs
+from .base import BaseRepository
 
 class StockLedgerRepository(BaseRepository):
     """
     Handles database operations for the stock_ledger collection.
     """
-    def __init__(self, collection_name: str = "stock_ledger"):
-        super().__init__(collection_name)
+    def __init__(self, db: Database):
+        
+            super().__init__(collection=db["ledger"])
+
 
     async def get_stock_availability(self) -> List[Dict]:
         """

@@ -4,13 +4,14 @@ from typing import List, Dict
 
 from app.core.logger import logs
 from app.repo.ledger_repo import StockLedgerRepository
+from pymongo.database import Database
 
 class StockLedgerService:
     """
     Contains the business logic for the stock ledger.
     """
-    def __init__(self):
-        self.repository = StockLedgerRepository()
+    def __init__(self, db: Database):
+        self.repository = StockLedgerRepository(db)
 
     async def get_ledger_history(self) -> List[Dict]:
         """

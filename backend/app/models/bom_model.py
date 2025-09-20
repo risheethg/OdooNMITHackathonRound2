@@ -1,41 +1,61 @@
-from typing import List, Optional
 from pydantic import BaseModel, Field
+from typing import List, Optional
+from .base_model import BaseDBModel, BaseCreateModel
 
 class BOMComponent(BaseModel):
-    """
-    Represents a single component (raw material or sub-assembly)
-    and its required quantity for a Bill of Materials.
-    """
-    productId: str
-    quantity: int = Field(..., gt=0)
+    productId: str = Field(..., description="Product ID of the component")
+    quantity: int = Field(..., gt=0, description="Quantity of component needed")
 
 class BOMOperation(BaseModel):
-    """
-    Represents a single manufacturing step in a Bill of Materials.
-    """
-    name: str
-    duration: int = Field(..., gt=0) # Duration in minutes
+    name: str = Field(..., description="Name of the operation")
+    duration: int = Field(..., gt=0, description="Duration in minutes")
 
-class BOM(BaseModel):
-    """
-    Represents the complete Bill of Materials document in MongoDB,
-    including its components and manufacturing operations.
-    """
-    id: Optional[str] = Field(None, alias="_id")
-    finishedProductId: str = Field(...)
-    components: List[BOMComponent]
-    operations: List[BOMOperation]
-    recipe: str
+class BOM(BaseDBModel):
+    """Bill of Materials with complete database fields"""
+    finishedProductId: str = Field(..., description="Product ID of the finished product")
+    components: List[BOMComponent] = Field(..., description="List of components required")
+    operations: List[BOMOperation] = Field(..., description="List of operations required")
+    recipe: Optional[str] = Field(None, description="Recipe description")
 
-    class Config:
-        json_encoders = {str: str}
-        arbitrary_types_allowed = True
-        validate_by_name = True
+class BOMCreate(BaseCreateModel):
+    """Model for creating BOMs"""
+    finishedProductId: str = Field(..., description="Product ID of the finished product")
+    components: List[BOMComponent] = Field(..., description="List of components required")
+    operations: List[BOMOperation] = Field(..., description="List of operations required") 
+    recipe: Optional[str] = Field(None, description="Recipe description")
 
-class BOMCreate(BaseModel):
-    """
-    Model for creating a new BOM from a simplified input.
-    """
-    finishedProductId: str = Field(...)
-    productName: str
-    quantity: int = Field(..., gt=0)
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "finishedProductId": "wooden_table_001",
+                "components": [
+                    {"productId": "wooden_leg_001", "quantity": 4},
+                    {"productId": "wooden_top_001", "quantity": 1},
+                    {"productId": "screws_001", "quantity": 12}
+                ],
+                "operations": [
+                    {"name": "Assembly", "duration": 60},
+                    {"name": "Painting", "duration": 30}
+                ],
+                "recipe": "Standard wooden table assembly process"
+            }
+        }
+    }
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "finishedProductId": "wooden_table_001",
+                "components": [
+                    {"productId": "wooden_leg_001", "quantity": 4},
+                    {"productId": "wooden_top_001", "quantity": 1},
+                    {"productId": "screws_001", "quantity": 12}
+                ],
+                "operations": [
+                    {"name": "Assembly", "duration": 60},
+                    {"name": "Painting", "duration": 30}
+                ],
+                "recipe": "Standard wooden table assembly process"
+            }
+        }
+    }

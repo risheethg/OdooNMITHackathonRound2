@@ -2,16 +2,17 @@ import inspect
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 
-from core.logger import logs
+from app.core.logger import logs
 from app.service.ledger_service import StockLedgerService
 from app.utils.response_model import response
+from pymongo.database import Database
 
 router = APIRouter(
     prefix="/stock-ledger",
     tags=["Stock Ledger"]
 )
 
-stock_ledger_service = StockLedgerService()
+stock_ledger_service = StockLedgerService(db=Database)  # Pass the actual Database instance here
 
 @router.get("/", summary="Get Stock Ledger History")
 async def get_stock_ledger_history(request: Request):
@@ -54,3 +55,11 @@ async def get_stock_availability(request: Request):
         logs.define_logger(50, f"Error getting stock availability: {e}", request=request, loggName=inspect.stack()[0])
         final_response = response.failure(message=f"An unexpected error occurred: {e}")
         return JSONResponse(status_code=500, content=final_response)
+
+# Additional route for convenience - matches the workflow description
+@router.get("/stock/availability", summary="Get Current Stock Availability (Alternative Route)")
+async def get_stock_availability_alt(request: Request):
+    """
+    Alternative route for stock availability - matches GET /stock/availability from workflow.
+    """
+    return await get_stock_availability(request)

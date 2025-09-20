@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from ..repo.bom_repo import BOMRepository
 from ..repo.product_repo import ProductRepository
-from ..models.bom_model import BOM
+from ..models.bom_model import BOM, BOMCreate
 from pymongo.results import InsertOneResult
 
 class BOMService:
@@ -9,7 +9,7 @@ class BOMService:
         self.bom_repo = bom_repo
         self.product_repo = product_repo
 
-    def create_bom(self, bom: BOM) -> InsertOneResult:
+    def create_bom(self, bom: BOMCreate) -> InsertOneResult:
         # Validate that the finished product exists
         finished_product_doc = self.product_repo.get_by_id(str(bom.finishedProductId))
         if not finished_product_doc:
@@ -27,5 +27,29 @@ class BOMService:
                 )
 
         # Create the BOM document
-        bom_data = bom.dict(by_alias=True)
+        bom_data = bom.model_dump()
         return self.bom_repo.create(bom_data)
+
+    def get_all_boms(self):
+        """Get all BOMs from the database."""
+        return self.bom_repo.get_all()
+
+    def get_bom_by_id(self, bom_id: str):
+        """Get a specific BOM by ID."""
+        bom = self.bom_repo.get_by_id(bom_id)
+        if not bom:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"BOM with ID '{bom_id}' not found."
+            )
+        return bom
+
+    def get_bom_by_product_id(self, product_id: str):
+        """Get BOM for a specific finished product."""
+        bom = self.bom_repo.find_one({"finishedProductId": product_id})
+        if not bom:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"BOM for product ID '{product_id}' not found."
+            )
+        return bom

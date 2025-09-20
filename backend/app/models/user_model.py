@@ -1,8 +1,6 @@
-# app/users/user_schema.py
-
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import Field, EmailStr
 from enum import Enum
-from bson import ObjectId
+from .base_model import BaseDBModel, BaseCreateModel
 
 class UserRole(str, Enum):
     ADMIN = "Admin"
@@ -10,17 +8,17 @@ class UserRole(str, Enum):
     OPERATOR = "Operator"
     INVENTORY_MANAGER = "Inventory Manager"
 
-class UserBase(BaseModel):
-    # Instead of user_id, we'll use email as it's a natural unique identifier
-    email: EmailStr = Field(..., description="The user's email address.")
-    role: UserRole = Field(..., description="The user's role, which determines their permissions.")
+class User(BaseDBModel):
+    """User with complete database fields"""
+    email: EmailStr = Field(..., description="The user's email address")
+    role: UserRole = Field(..., description="The user's role")
+    password_hash: str = Field(..., description="Hashed password")
 
-class CreateUserSchema(UserBase):
-    password: str = Field(..., min_length=8, description="The user's password (min 8 characters).")
+class CreateUserSchema(BaseCreateModel):
+    """Schema for creating users"""
+    email: EmailStr = Field(..., description="The user's email address")
+    role: UserRole = Field(..., description="The user's role")
+    password: str = Field(..., min_length=8, description="The user's password (min 8 characters)")
 
-class UserResponseSchema(UserBase):
-    id: str = Field(..., alias="_id")
-
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
+# Alias for backward compatibility
+UserResponseSchema = User

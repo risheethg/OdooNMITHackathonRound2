@@ -4,13 +4,16 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pymongo import MongoClient
-from app.app.core.db_connection import DBConnection
+from app.core.db_connection import DBConnection
 
 #importing all routes
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
 from app.routes.user_routes import router as user_router
-from app.routes import product_routes,bom_route
+from app.routes import product_routes, bom_route
+from app.routes.manufacture_routes import router as manufacture_router
+from app.routes.ledger_routes import router as ledger_router
+from app.routes.stock_routes import router as stock_router
 from app.core.logger import logs 
 import inspect
 import os
@@ -39,6 +42,9 @@ app = FastAPI(
 
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
+app.include_router(manufacture_router)
+app.include_router(ledger_router)
+app.include_router(stock_router)
 
 
 @app.get("/", tags=["Health Check"])
