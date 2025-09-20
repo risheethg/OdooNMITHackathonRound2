@@ -1,28 +1,19 @@
-# app/work_orders/work_order_repo.py
+# app/repo/wo_repo.py
 
+from typing import List, Dict, Any, Optional
 from pymongo.database import Database
-from app.repo.base import BaseRepository
-from app.core.db_connection import get_db
+from bson import ObjectId
+
+# NOTE: This assumes you have a BaseRepository. If not, implement these methods directly.
+from app.repo.base import BaseRepository # Assuming a base repository
 
 class WorkOrderRepository(BaseRepository):
     """
-    Repository for Work Order specific database operations.
-    It inherits generic CRUD methods from BaseRepository.
+    Repository for interacting with the 'work_orders' collection in MongoDB.
     """
     def __init__(self, db: Database):
-        """
-        Initializes the repository with the 'work_orders' collection.
-        
-        Args:
-            db (Database): The database instance.
-        """
-        super().__init__(db["work_orders"])
+        super().__init__(db, "work_orders")
 
-# Dependency function to get a repository instance
-def get_work_order_repo() -> WorkOrderRepository:
-    """
-    Returns an instance of the WorkOrderRepository.
-    This function can be used as a dependency in FastAPI routes.
-    """
-    db = get_db()
-    return WorkOrderRepository(db)
+    def find_by_mo_id(self, mo_id: str) -> List[Dict[str, Any]]:
+        """Finds all work orders associated with a given Manufacturing Order ID."""
+        return list(self.collection.find({"mo_id": mo_id}))

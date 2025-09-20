@@ -1,105 +1,86 @@
-# app/work_orders/work_order_service.py
+# app/services/wo_service.py
 
 import inspect
-from datetime import datetime, timezone
-from bson import ObjectId
-from app.core.logger import logs
-from app.core.response_model import response
-from .work_order_repo import WorkOrderRepository, get_work_order_repo
-from .work_order_schema import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema, WorkOrderResponseSchema
+from typing import Dict, Any
+
+from fastapi import HTTPException, status
+from pymongo.database import Database
+
+from app.repo.work_order_repo import WorkOrderRepository
+from app.repo.manufacture_repo import ManufacturingOrderRepository
+from app.service.manufacture_service import ManufacturingOrderService 
+from app.core.logger import logs 
 
 class WorkOrderService:
-    def __init__(self, repo: WorkOrderRepository):
-        self.repo = repo
+    """
+    Handles business logic for Work Orders, including the trigger for completing a
+    Manufacturing Order.
+    """
+    def __init__(self, db: Database):
+        self.wo_repo = WorkOrderRepository(db)
+        self.mo_repo = ManufacturingOrderRepository(db)
+        # Instantiate MO service to use its 'complete' method, ensuring inventory logic is reused
+        self.mo_service = ManufacturingOrderService(db)
 
-    def create_work_order(self, data: CreateWorkOrderSchema):
+    async def start_manufacturing_process(self, mo_id: str) -> Dict[str, Any]:
         """
-        Creates a new work order.
-        The payload should include the ID of a pre-existing Work Centre.
+        Starts the process for a given MO by updating its status and the status
+        of its first work order.
         """
-        try:
-            if not ObjectId.is_valid(data.manufacturingOrderId):
-                return response.failure("Invalid manufacturingOrderId format", status_code=400)
-            
-            # This is the key part: We check if a workCenterId was provided and validate it.
-            # This ID comes from a Work Centre that was created beforehand.
-            if data.workCenterId and not ObjectId.is_valid(data.workCenterId):
-                return response.failure("Invalid workCenterId format", status_code=400)
+        logs.info(f"Attempting to start process for MO ID: {mo_id}")
 
-            work_order_data = data.model_dump()
-            
-            work_order_data["manufacturingOrderId"] = ObjectId(data.manufacturingOrderId)
-            if data.workCenterId:
-                work_order_data["workCenterId"] = ObjectId(data.workCenterId)
+        # 1. Validate the Manufacturing Order
+        mo = self.mo_repo.get_by_id(mo_id)
+        if not mo:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Manufacturing Order {mo_id} not found.")
+        
+        if mo.get("status") != "planned":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"MO must be in 'planned' state. Current state: {mo.get('status')}")
 
-            now = datetime.now(timezone.utc)
-            work_order_data["createdAt"] = now
-            work_order_data["updatedAt"] = now
+        # 2. Find associated Work Orders
+        work_orders = self.wo_repo.find_by_mo_id(mo_id)
+        if not work_orders:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="No work orders found for this MO. Cannot start process.")
 
-            result = self.repo.create(work_order_data)
-            new_id = result.inserted_id
-            
-            logs.define_logger(level=20, loggName=inspect.stack()[0], message=f"Successfully created work order with ID: {new_id}")
-            return response.success(data={"id": str(new_id)}, message="Work order created successfully", status_code=201)
+        # 3. Update statuses
+        self.mo_repo.update(mo_id, {"status": "in_progress"})
+        first_wo_id = str(work_orders[0]["_id"])
+        self.wo_repo.update(first_wo_id, {"status": "in_progress"})
 
-        except Exception as e:
-            logs.define_logger(level=40, loggName=inspect.stack()[0], message=f"Error creating work order: {e}", body=data.model_dump_json())
-            return response.failure(message=f"Failed to create work order: {e}", status_code=500)
+        logs.info(f"Process for MO {mo_id} started. First WO {first_wo_id} is now 'in_progress'.")
 
-    def get_all_work_orders(self):
+        return {"message": "Manufacturing process started successfully.", "mo_id": mo_id, "first_wo_id": first_wo_id}
+
+    async def update_work_order_status(self, wo_id: str, new_status: str) -> Dict[str, Any]:
         """
-        Retrieves a list of all work orders.
+        Updates a WO's status. If the new status is 'done', it checks if the parent MO
+        can be completed.
         """
-        try:
-            work_order_docs = self.repo.get_all()
-            results = [
-                WorkOrderResponseSchema.model_validate(wo).model_dump(by_alias=True)
-                for wo in work_order_docs
-            ]
-            return response.success(data=results)
-        except Exception as e:
-            logs.define_logger(level=40, loggName=inspect.stack()[0], message=f"Error retrieving all work orders: {e}")
-            return response.failure(message=f"An error occurred: {e}", status_code=500)
-    
-    # ... (get_work_order_by_id and update_work_order_status methods remain the same) ...
-    def get_work_order_by_id(self, item_id: str):
-        if not ObjectId.is_valid(item_id):
-            return response.failure(message="Invalid work order ID format", status_code=400)
+        logs.info(f"Updating WO {wo_id} to status '{new_status}'")
 
-        try:
-            work_order_doc = self.repo.get_by_id(item_id)
-            if work_order_doc:
-                validated_data = WorkOrderResponseSchema.model_validate(work_order_doc)
-                return response.success(data=validated_data.model_dump(by_alias=True))
-            else:
-                return response.failure(message="Work order not found", status_code=404)
+        # 1. Validate and fetch the Work Order
+        work_order = self.wo_repo.get_by_id(wo_id)
+        if not work_order:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Work Order {wo_id} not found.")
 
-        except Exception as e:
-            logs.define_logger(level=40, loggName=inspect.stack()[0], message=f"Error retrieving work order {item_id}: {e}")
-            return response.failure(message=f"An error occurred: {e}", status_code=500)
+        # 2. Update the status
+        self.wo_repo.update(wo_id, {"status": new_status})
 
-    def update_work_order_status(self, item_id: str, data: UpdateWorkOrderStatusSchema):
-        if not ObjectId.is_valid(item_id):
-            return response.failure(message="Invalid work order ID format", status_code=400)
+        # 3. If WO is done, check if the parent MO is now complete (the "trigger")
+        if new_status == "done":
+            mo_id = work_order["mo_id"]
+            all_wos_for_mo = self.wo_repo.find_by_mo_id(mo_id)
             
-        try:
-            existing_work_order = self.repo.get_by_id(item_id)
-            if not existing_work_order:
-                return response.failure(message="Work order not found", status_code=404)
+            # Check if all WOs for this parent MO are now done
+            if all(wo.get("status") == "done" for wo in all_wos_for_mo):
+                logs.info(f"All WOs for MO {mo_id} are done. Triggering MO completion.")
+                await self.mo_service.complete_manufacturing_order(mo_id)
+                return {
+                    "message": f"Work Order completed, which triggered completion of parent MO.",
+                    "wo_id": wo_id,
+                    "mo_id": mo_id
+                }
 
-            update_data = {
-                "status": data.status.value,
-                "updatedAt": datetime.now(timezone.utc)
-            }
-            self.repo.update(item_id, update_data)
-            
-            logs.define_logger(level=20, loggName=inspect.stack()[0], message=f"Updated status for work order ID: {item_id} to {data.status.value}")
-            return response.success(data=None, message="Work order status updated successfully")
-
-        except Exception as e:
-            logs.define_logger(level=40, loggName=inspect.stack()[0], message=f"Error updating work order {item_id}: {e}", body=data.model_dump_json())
-            return response.failure(message=f"Failed to update work order status: {e}", status_code=500)
-            
-def get_work_order_service() -> WorkOrderService:
-    repo = get_work_order_repo()
-    return WorkOrderService(repo)
+        updated_wo = self.wo_repo.get_by_id(wo_id)
+        updated_wo["_id"] = str(updated_wo["_id"])
+        return updated_wo

@@ -1,52 +1,43 @@
-# app/work_orders/work_order_router.py
+# app/api/routes/wo_router.py
 
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, status, Body
+from typing import Dict, Any
 
-from .work_order_service import WorkOrderService, get_work_order_service
-from .work_order_schema import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema
+from pymongo.database import Database
+from app.core.db_connection import get_db # Assuming a dependency to get the DB
+from app.service.work_order_service import WorkOrderService
+from app.models.work_order_model import WorkOrderUpdate, StartProcessPayload
 
 router = APIRouter(
     prefix="/work-orders",
     tags=["Work Orders"]
 )
 
-@router.post("/")
-def create_work_order(
-    data: CreateWorkOrderSchema,
-    service: WorkOrderService = Depends(get_work_order_service)
+@router.post(
+    "/start-process",
+    summary="Start a Manufacturing Process",
+    description="Triggers the start of a planned MO, setting its status to 'in_progress'.",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK
+)
+async def start_manufacturing_process(
+    payload: StartProcessPayload,
+    db: Database = Depends(get_db)
 ):
-    """
-    Create a new Work Order. The `workCenterId` in the payload must correspond
-    to a Work Centre that has been created beforehand.
-    """
-    result = service.create_work_order(data)
-    return JSONResponse(status_code=result["status_code"], content=result)
+    service = WorkOrderService(db)
+    return await service.start_manufacturing_process(payload.mo_id)
 
-# --- New Endpoint Added ---
-@router.get("/")
-def get_all_work_orders(
-    service: WorkOrderService = Depends(get_work_order_service)
+@router.patch(
+    "/{wo_id}/status",
+    summary="Update Work Order Status (The Trigger)",
+    description="Updates a WO's status. If all WOs for an MO become 'done', the parent MO is automatically completed.",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK
+)
+async def update_work_order_status(
+    wo_id: str,
+    update_data: WorkOrderUpdate,
+    db: Database = Depends(get_db)
 ):
-    """
-    Retrieve a list of all Work Orders.
-    """
-    result = service.get_all_work_orders()
-    return JSONResponse(status_code=result["status_code"], content=result)
-
-@router.get("/{item_id}")
-def get_work_order(
-    item_id: str,
-    service: WorkOrderService = Depends(get_work_order_service)
-):
-    result = service.get_work_order_by_id(item_id)
-    return JSONResponse(status_code=result["status_code"], content=result)
-
-@router.patch("/{item_id}/status")
-def update_work_order_status(
-    item_id: str,
-    data: UpdateWorkOrderStatusSchema,
-    service: WorkOrderService = Depends(get_work_order_service)
-):
-    result = service.update_work_order_status(item_id, data)
-    return JSONResponse(status_code=result["status_code"], content=result)
+    service = WorkOrderService(db)
+    return await service.update_work_order_status(wo_id, update_data.status)
