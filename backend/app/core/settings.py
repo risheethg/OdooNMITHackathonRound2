@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     # The name of the database to use.
     MONGO_DB_NAME: str = "manufacturing_db"
+    LOGGER: int=20
 
     LOGGER: int = 20
 

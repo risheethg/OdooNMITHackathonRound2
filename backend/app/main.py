@@ -1,37 +1,35 @@
 import uvicorn
+import logging
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from pymongo import MongoClient
-
-# Importing the connection manager from the core directory
-from app.core.db_connection import DBConnection
+from app.app.core.db_connection import DBConnection
 
 #importing all routes
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
 from app.routes.user_routes import router as user_router
+from app.routes import product_routes,bom_route
+from app.core.logger import logs 
+import inspect
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Async context manager to handle application startup and shutdown events.
-    This is the recommended way to manage resources like database connections.
-    """
-    print("Application startup...")
-    # Initialize the database connection on startup
-    # The DBConnection class uses a singleton pattern, so this initializes it once.
+    log_info = inspect.stack()[0]
+    logs.define_logger(level=logging.INFO, message="Application startup...", loggName=log_info, pid=os.getpid())
     app.state.db_connection = DBConnection()
-    print("MongoDB connection established.")
+    logs.define_logger(level=logging.INFO, message="MongoDB connection established.", loggName=log_info, pid=os.getpid())
     
-    yield  # The application runs while the context manager is active
+    yield
     
-    print("Application shutdown...")
-    # Safely close the MongoDB client connection on shutdown
+    log_info = inspect.stack()[0]
+    logs.define_logger(level=logging.INFO, message="Application shutdown...", loggName=log_info, pid=os.getpid())
     if DBConnection._client:
         DBConnection._client.close()
-        print("MongoDB connection closed.")
+        logs.define_logger(level=logging.INFO, message="MongoDB connection closed.", loggName=log_info, pid=os.getpid())
 
-# Create the FastAPI application instance with the lifespan manager
 app = FastAPI(
     title="Manufacturing Management API",
     description="API for managing the end-to-end manufacturing process.",
@@ -39,12 +37,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(product_routes.router)
+app.include_router(bom_route.router)
+
+
 @app.get("/", tags=["Health Check"])
 def health_check():
-    """
-    A simple health check endpoint.
-    Returns a success message if the application is running.
-    """
+    log_info = inspect.stack()[0]
+    logs.define_logger(level=logging.INFO, message="Health check endpoint called.", loggName=log_info, pid=os.getpid())
     return {"status": "healthy", "message": "Welcome to the Manufacturing Management API!"}
 
 #include the routes
@@ -53,7 +53,6 @@ app.include_router(work_centre_router)
 app.include_router(user_router)
 
 
-# This block allows running the app directly with `python main.py`
 if __name__ == "__main__":
     uvicorn.run(
         "main:app", 
