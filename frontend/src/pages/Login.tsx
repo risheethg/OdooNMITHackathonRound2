@@ -1,19 +1,50 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Factory, Lock, Mail } from "lucide-react";
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth } from "@/firebase";
+import { useAuth } from "@/Root";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/"); // Redirect to dashboard if already logged in
+    }
+  }, [user, loading, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Authentication logic would go here
-    console.log("Login attempt", { email, password });
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // The onAuthStateChanged listener in Root.tsx will handle the redirect
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -27,6 +58,7 @@ const Login = () => {
           <p className="text-muted-foreground">Sign in to your account</p>
         </CardHeader>
         <CardContent>
+          {error && <p className="text-destructive text-sm text-center mb-4">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -71,6 +103,19 @@ const Login = () => {
               className="w-full bg-gradient-to-r from-primary to-primary-hover hover:shadow-md transition-all"
             >
               Sign In
+            </Button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
+              Google
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}

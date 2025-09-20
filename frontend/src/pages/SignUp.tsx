@@ -1,19 +1,38 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Factory, Lock, Mail, User } from "lucide-react";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "@/firebase";
+import { useAuth } from "@/Root";
 
 const SignUp = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignUp = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/"); // Redirect to dashboard if already logged in
+    }
+  }, [user, loading, navigate]);
+
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sign up attempt", { fullName, email, password });
+    setError(null);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: fullName });
+      // The onAuthStateChanged listener in Root.tsx will handle the redirect and backend sync
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -27,6 +46,7 @@ const SignUp = () => {
           <p className="text-muted-foreground">Create your account</p>
         </CardHeader>
         <CardContent>
+          {error && <p className="text-destructive text-sm text-center mb-4">{error}</p>}
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>

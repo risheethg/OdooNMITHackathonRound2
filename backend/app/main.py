@@ -3,10 +3,16 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+
+# Importing the connection manager from the core directory
+from app.core.db_connection import DBConnection
+# Import the Firebase initialization function
+from app.core.firebase_app import initialize_firebase
+# Import the authentication routes
+from app.routes import auth_routes
 from pymongo import MongoClient
 from app.core.db_connection import DBConnection
 
-#importing all routes
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
 from app.routes.user_routes import router as user_router
@@ -22,6 +28,7 @@ import os
 async def lifespan(app: FastAPI):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Application startup...", loggName=log_info, pid=os.getpid())
+    initialize_firebase()
     app.state.db_connection = DBConnection()
     logs.define_logger(level=logging.INFO, message="MongoDB connection established.", loggName=log_info, pid=os.getpid())
     
@@ -40,12 +47,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(auth_routes.router, prefix="/auth")
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
 app.include_router(manufacture_router)
 app.include_router(ledger_router)
 app.include_router(stock_router)
-
 
 @app.get("/", tags=["Health Check"])
 def health_check():

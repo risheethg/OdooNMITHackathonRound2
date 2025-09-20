@@ -1,3 +1,4 @@
-/pycache/
+.env
+serviceAccountKey.json
 __pycache__/
 logger/
