@@ -28,7 +28,7 @@ class ManufacturingOrder(BaseModel):
     id: str = Field(default_factory=lambda: str(ObjectId()), alias="_id")
     product_id: str  # The finished good to produce
     quantity_to_produce: int
-    status: Literal["planned", "in_progress", "done", "canceled"] = "planned"
+    status: Literal["planned", "in_progress", "done", "cancelled"] = "planned"
     bom_snapshot: BillOfMaterials  # A copy of the BOM at the time of creation
     work_orders: List[WorkOrder] = []
     created_at: datetime = Field(default_factory=datetime.utcnow)
