@@ -21,7 +21,7 @@ class ManufacturingOrder(BaseDBModel):
     quantity_to_produce: int = Field(..., description="Quantity to produce")
     status: Literal["planned", "in_progress", "done", "cancelled"] = Field(default="planned")
     bom_snapshot: BillOfMaterials = Field(..., description="A copy of the BOM at the time of creation")
-    work_orders: List[WorkOrder] = Field(default=[], description="List of work orders")
+    work_orders_ids: List[str] = Field(default=[], description="List of work orders ids")
 
 class ManufacturingOrderCreate(BaseCreateModel):
     """Defines the shape of the input data required to create a new MO"""
