@@ -10,20 +10,31 @@ class BOMService:
         self.product_repo = product_repo
 
     def create_bom(self, bom: BOMCreate) -> InsertOneResult:
-        # Validate that the finished product exists
-        finished_product_doc = self.product_repo.get_by_id(str(bom.finishedProductId))
+        # Validate that the finished product exists and is a 'Finished Good'
+        finished_product_doc = self.product_repo.get_by_id(bom.finishedProductId)
         if not finished_product_doc:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Finished product with ID '{bom.finishedProductId}' not found."
             )
+        if finished_product_doc.get("type") != "Finished Good":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Product with ID '{bom.finishedProductId}' must be a 'Finished Good' to be a finished product in a BOM."
+            )
 
-        # Validate that all components exist
+        # Validate that all components exist and are 'Raw Material'
         for comp in bom.components:
-            if not self.product_repo.get_by_id(str(comp.productId)):
+            component_product_doc = self.product_repo.get_by_id(comp.productId)
+            if not component_product_doc:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Component product with ID '{comp.productId}' not found."
+                )
+            if component_product_doc.get("type") != "Raw Material":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Component product with ID '{comp.productId}' must be 'Raw Material' to be a component in a BOM."
                 )
 
         # Create the BOM document
