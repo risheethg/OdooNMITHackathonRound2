@@ -7,11 +7,14 @@ from app.core.db_connection import get_db
 from app.core.logger import logs
 from app.service.ledger_service import StockLedgerService
 from app.utils.response_model import response
+from app.core.security import RoleChecker
+from app.models.user_model import UserRole
 from pymongo.database import Database
 
 router = APIRouter(
     prefix="/stock-ledger",
-    tags=["Stock Ledger"]
+    tags=["Stock Ledger"],
+    dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.ADMIN]))]
 )
 
 def get_stock_ledger_service(db: Database = Depends(get_db)) -> StockLedgerService:
@@ -63,5 +66,3 @@ async def get_stock_availability(request: Request, stock_ledger_service: StockLe
         logs.define_logger(level=logging.ERROR, message=f"Error getting stock availability: {e}", loggName=log_info, pid=os.getpid(), request=request)
         final_response = response.failure(message=f"An unexpected error occurred: {e}")
         return JSONResponse(status_code=500, content=final_response)
-
-

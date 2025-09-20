@@ -1,14 +1,17 @@
 import inspect
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
 from app.core.logger import logs
 from app.service.ledger_service import StockLedgerService
 from app.utils.response_model import response
+from app.core.security import RoleChecker
+from app.models.user_model import UserRole
 from pymongo.database import Database
 router = APIRouter(
     prefix="/stock",
-    tags=["Stock"]
+    tags=["Stock"],
+    dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.ADMIN]))]
 )
 
 stock_ledger_service = StockLedgerService(db=Database)  # Pass the actual Database instance here

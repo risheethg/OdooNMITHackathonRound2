@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
     """
@@ -10,10 +11,8 @@ class Settings(BaseSettings):
 
     # The name of the database to use.
     MONGO_DB_NAME: str = "manufacturing_db"
-    LOGGER: int=20
-
     LOGGER: int = 20
-
+    FIREBASE_CREDENTIALS_PATH: Optional[str] = None
 
     class Config:
         # Specifies the file from which to load the environment variables.

@@ -1,15 +1,18 @@
 import inspect
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
 from core.logger import logs
 from app.service.analytics_service import AnalyticsService
 from app.utils.response_model import response
 from app.models.analytics_model import ProductionThroughput
+from app.core.security import RoleChecker
+from app.models.user_model import UserRole
 
 router = APIRouter(
     prefix="/analytics",
-    tags=["Analytics Dashboard"]
+    tags=["Analytics Dashboard"],
+    dependencies=[Depends(RoleChecker([UserRole.ADMIN]))]
 )
 
 analytics_service = AnalyticsService()

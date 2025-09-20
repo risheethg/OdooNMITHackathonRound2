@@ -490,3 +490,47 @@
 2025-09-20 23:42:32,073 - APP-BE - ERROR - IP: 127.0.0.1 - URL: PATCH http://127.0.0.1:8000/manufacturing-orders/68ceeb52ed7cb2394e9b52ad/complete - MESSAGE: Failed to complete manufacturing order: Manufacturing Order is already completed. - PID: 20818 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/routes/manufacture_routes.py:complete_manufacturing_order
 2025-09-20 23:44:13,511 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 20818 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
 2025-09-20 23:44:13,517 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 20818 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 00:34:42,675 - APP-BE - INFO - MESSAGE: Application startup... - PID: 22051 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 00:34:42,675 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 22051 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 00:36:25,040 - APP-BE - INFO - MESSAGE: Health check endpoint called. - PID: 22051 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:health_check
+2025-09-21 01:12:17,045 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 22051 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:12:17,052 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 22051 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:21:30,962 - APP-BE - INFO - MESSAGE: Application startup... - PID: 22420 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:21:30,963 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 22420 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:21:35,230 - APP-BE - INFO - MESSAGE: Health check endpoint called. - PID: 22420 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:health_check
+2025-09-21 01:22:03,735 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out
+2025-09-21 01:22:07,748 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out
+2025-09-21 01:22:09,944 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+2025-09-21 01:22:09,944 - google.auth._default - WARNING - Authentication failed using Compute Engine authentication due to unavailable metadata server.
+2025-09-21 01:22:09,947 - APP-BE - ERROR - MESSAGE: Error creating user: A project ID is required to access the auth service.
+            1. Use a service account credential, or
+            2. set the project ID explicitly via Firebase App options, or
+            3. set the project ID via the GOOGLE_CLOUD_PROJECT environment variable. - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/service/user_service.py:create_user - BODY: {"email":"user2@example.com"}
+2025-09-21 01:28:48,342 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 22420 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:28:48,350 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 22420 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:28:49,588 - APP-BE - INFO - MESSAGE: Application startup... - PID: 22479 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:28:49,588 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 22479 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:35:23,341 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 22479 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:35:23,346 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 22479 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:35:24,265 - APP-BE - INFO - MESSAGE: Application startup... - PID: 22543 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:35:24,265 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 22543 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:36:28,223 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out
+2025-09-21 01:36:32,172 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out
+2025-09-21 01:36:34,108 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+2025-09-21 01:36:34,109 - google.auth._default - WARNING - Authentication failed using Compute Engine authentication due to unavailable metadata server.
+2025-09-21 01:36:34,120 - APP-BE - ERROR - MESSAGE: Error creating user: A project ID is required to access the auth service.
+            1. Use a service account credential, or
+            2. set the project ID explicitly via Firebase App options, or
+            3. set the project ID via the GOOGLE_CLOUD_PROJECT environment variable. - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/service/user_service.py:create_user - BODY: {"email":"user@example.com","role":"Admin"}
+2025-09-21 01:44:33,391 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 22543 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:44:33,405 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 22543 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:44:34,746 - APP-BE - INFO - MESSAGE: Application startup... - PID: 22613 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:44:34,746 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 22613 - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 01:45:06,136 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 1 of 3. Reason: timed out
+2025-09-21 01:45:10,157 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 2 of 3. Reason: timed out
+2025-09-21 01:45:12,039 - google.auth.compute_engine._metadata - WARNING - Compute Engine Metadata server unavailable on attempt 3 of 3. Reason: [Errno 64] Host is down
+2025-09-21 01:45:12,040 - google.auth._default - WARNING - Authentication failed using Compute Engine authentication due to unavailable metadata server.
+2025-09-21 01:45:12,055 - APP-BE - ERROR - MESSAGE: Error creating user: A project ID is required to access the auth service.
+            1. Use a service account credential, or
+            2. set the project ID explicitly via Firebase App options, or
+            3. set the project ID via the GOOGLE_CLOUD_PROJECT environment variable. - FILE: /Users/paripatankar/Desktop/OdooNMITHackathonRound2/backend/app/service/user_service.py:create_user - BODY: {"email":"wdwo@mail.com","role":"Admin"}

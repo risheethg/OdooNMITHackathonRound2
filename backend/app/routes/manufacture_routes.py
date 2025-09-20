@@ -10,10 +10,13 @@ from app.service.manufacture_service import ManufacturingOrderService
 from app.core.db_connection import get_db
 from app.core.logger import logs
 from app.utils.response_model import response
+from app.core.security import RoleChecker
+from app.models.user_model import UserRole
 
 router = APIRouter(
     prefix="/manufacturing-orders",
-    tags=["Manufacturing Orders"]
+    tags=["Manufacturing Orders"],
+    dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
 )
 
 def get_mo_service(db: Database = Depends(get_db)) -> ManufacturingOrderService:

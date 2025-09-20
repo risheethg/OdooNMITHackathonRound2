@@ -10,6 +10,8 @@ from ..models.bom_model import BOM, BOMComponent, BOMCreate
 from ..repo.bom_repo import BOMRepository
 from ..repo.product_repo import ProductRepository
 from ..service.bom_service import BOMService
+from ..core.security import RoleChecker
+from ..models.user_model import UserRole
 
 import inspect
 import os
@@ -22,7 +24,8 @@ def get_bom_service(db: Database = Depends(get_db)) -> BOMService:
 
 router = APIRouter(
     prefix="/boms",
-    tags=["BOMs"]
+    tags=["BOMs"],
+    dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
 )
 
 from app.models.bom_model import BOM, BOMCreate

@@ -10,15 +10,15 @@ class UserRole(str, Enum):
 
 class User(BaseDBModel):
     """User with complete database fields"""
+    uid: str = Field(..., description="Firebase Auth User ID")
     email: EmailStr = Field(..., description="The user's email address")
     role: UserRole = Field(..., description="The user's role")
-    password_hash: str = Field(..., description="Hashed password")
 
 class CreateUserSchema(BaseCreateModel):
     """Schema for creating users"""
     email: EmailStr = Field(..., description="The user's email address")
-    role: UserRole = Field(..., description="The user's role")
     password: str = Field(..., min_length=8, description="The user's password (min 8 characters)")
+    role: UserRole = Field(..., description="The role to assign to the new user")
 
 # Alias for backward compatibility
 UserResponseSchema = User

@@ -4,10 +4,13 @@ from fastapi.responses import JSONResponse
 from app.service.work_centre_service import WorkCentreService, get_work_centre_service
 from app.models.work_centre_model import CreateWorkCentreSchema
 from app.utils.response_model import response
+from app.core.security import RoleChecker
+from app.models.user_model import UserRole
 
 router = APIRouter(
     prefix="/work-centres",
-    tags=["Work Centres"]
+    tags=["Work Centres"],
+    dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
 )
 
 @router.post("/")
