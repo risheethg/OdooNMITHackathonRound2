@@ -3,6 +3,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 
 # Importing the connection manager from the core directory
 from app.core.db_connection import DBConnection
@@ -13,9 +14,9 @@ from app.routes import auth_routes
 from pymongo import MongoClient
 from app.core.db_connection import DBConnection
 
+from app.routes.auth_routes import router as auth_router
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
-from app.routes.user_routes import router as user_router
 from app.routes import product_routes, bom_route
 from app.routes.manufacture_routes import router as manufacture_router
 from app.routes.ledger_routes import router as ledger_router
@@ -47,7 +48,20 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.include_router(auth_routes.router, prefix="/auth")
+# --- ADD THIS BLOCK FOR CORS ---
+# List of allowed origins (your frontend's URL)
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # Allows specific origins
+    allow_credentials=True,      # Allows cookies to be included in requests
+    allow_methods=["*"],         # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],         # Allows all headers
+)
+# --------------------------------
+
+app.include_router(auth_router, prefix="/auth")
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
 app.include_router(manufacture_router)
@@ -63,7 +77,6 @@ def health_check():
 #include the routes
 app.include_router(work_order_router)
 app.include_router(work_centre_router)
-app.include_router(user_router)
 
 
 if __name__ == "__main__":
