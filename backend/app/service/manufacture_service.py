@@ -2,8 +2,8 @@ import inspect
 from typing import List, Dict, Any
 
 from fastapi import HTTPException
-from repository.manufacturing_order_repository import ManufacturingOrderRepository
-from models.manufacturing_order import ManufacturingOrderCreate, ManufacturingOrder, WorkOrder, BillOfMaterials
+from ..repo.manufacture_repo import ManufacturingOrderRepository
+from ..models.manufacture import ManufacturingOrderCreate, ManufacturingOrder, WorkOrder, BillOfMaterials
 from core.logger import logs
 
 # --- Mock Repositories (Replace with your actual imports) ---

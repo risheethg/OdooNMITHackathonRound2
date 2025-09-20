@@ -1,6 +1,6 @@
 import asyncio
 import inspect
-from core.logger import logs
+from app.core.logger import logs
 from typing import List, Callable, Coroutine
 
 class PollingService:
