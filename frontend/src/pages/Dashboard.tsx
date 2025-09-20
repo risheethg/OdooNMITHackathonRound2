@@ -176,7 +176,7 @@ const OrdersTable = ({ statusFilter, searchTerm, onDeleteOrder, onCompleteOrder,
     const filteredOrders = useMemo(() => {
         if (!orders) return [];
         return orders.filter(order => {
-            const productName = productMap.get(order.product_id)?.toLowerCase() || '';
+            const productName = productMap.get(order.product_id)?.toLowerCase() ?? '';
             const search = searchTerm.toLowerCase();
             return (
                 order.mo_id.toLowerCase().includes(search) ||
