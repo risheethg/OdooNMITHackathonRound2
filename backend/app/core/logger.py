@@ -5,7 +5,7 @@ import os
 from logging.handlers import RotatingFileHandler
 from fastapi import Request
 # from fastapi.encoders import jsonable_encoder
-from app.core.config import settings
+from app.core.settings import settings
 import time
 
 from pymongo.collection import Collection, ObjectId

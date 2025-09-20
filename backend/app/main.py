@@ -4,8 +4,10 @@ from fastapi import FastAPI
 from pymongo import MongoClient
 
 # Importing the connection manager from the core directory
-from core.db_connection import DBConnection
+from app.core.db_connection import DBConnection
 
+#importing all routes
+from app.routes.work_order_route import router as work_order_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -41,6 +43,9 @@ def health_check():
     Returns a success message if the application is running.
     """
     return {"status": "healthy", "message": "Welcome to the Manufacturing Management API!"}
+
+#include the routes
+app.include_router(work_order_router)
 
 # This block allows running the app directly with `python main.py`
 if __name__ == "__main__":
