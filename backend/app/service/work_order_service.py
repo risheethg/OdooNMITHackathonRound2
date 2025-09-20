@@ -2,6 +2,7 @@
 
 import inspect
 from typing import Dict, Any, List
+from datetime import datetime, timezone
 
 from fastapi import HTTPException, status, Request # Import Request
 from pymongo.database import Database
@@ -11,6 +12,7 @@ from ..repo.work_order_repo import WorkOrderRepository
 from ..repo.manufacture_repo import ManufacturingOrderRepository
 from ..service.manufacture_service import ManufacturingOrderService 
 from ..core.logger import logs 
+from ..utils.websocket_manager import connection_manager
 
 class WorkOrderService:
     """
@@ -67,7 +69,37 @@ class WorkOrderService:
             return {"message": "Work Order is already completed.", "wo_id": wo_id}
 
         # 2. Update the status
+        prev_status = work_order.get("status")
         self.wo_repo.update(wo_id, {"status": new_status})
+
+        # Broadcast WO status change
+        mo_id = work_order["mo_id"]
+        event_ts = datetime.now(timezone.utc).isoformat()
+        await connection_manager.send_to_topic(
+            project_id=wo_id,
+            topic="wo_status",
+            data={
+                "event": "work_order_status_changed",
+                "work_order_id": wo_id,
+                "mo_id": mo_id,
+                "previous_status": prev_status,
+                "status": new_status,
+                "timestamp": event_ts,
+            },
+        )
+        # Also notify MO channel subscribers
+        await connection_manager.send_to_topic(
+            project_id=mo_id,
+            topic="mo_status",
+            data={
+                "event": "work_order_status_changed",
+                "work_order_id": wo_id,
+                "mo_id": mo_id,
+                "previous_status": prev_status,
+                "status": new_status,
+                "timestamp": event_ts,
+            },
+        )
 
         # 3. If WO is done, automate the next step
         if new_status == "done":
@@ -104,6 +136,32 @@ class WorkOrderService:
                             message=f"WO {wo_id} completed. Automatically starting next WO {next_wo_id}.",
                             loggName=inspect.stack()[0],
                             request=request
+                        )
+                        # Broadcast auto-start of next WO
+                        start_ts = datetime.now(timezone.utc).isoformat()
+                        await connection_manager.send_to_topic(
+                            project_id=next_wo_id,
+                            topic="wo_status",
+                            data={
+                                "event": "work_order_auto_started",
+                                "work_order_id": next_wo_id,
+                                "mo_id": mo_id,
+                                "previous_status": "pending",
+                                "status": "in_progress",
+                                "timestamp": start_ts,
+                            },
+                        )
+                        await connection_manager.send_to_topic(
+                            project_id=mo_id,
+                            topic="mo_status",
+                            data={
+                                "event": "work_order_auto_started",
+                                "work_order_id": next_wo_id,
+                                "mo_id": mo_id,
+                                "previous_status": "pending",
+                                "status": "in_progress",
+                                "timestamp": start_ts,
+                            },
                         )
                         return {"message": f"Work Order {wo_id} completed. Next work order {next_wo_id} started.", "wo_id": wo_id, "next_wo_id_started": next_wo_id}
 
