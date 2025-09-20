@@ -34,6 +34,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(product_routes.router)
+
 @app.get("/", tags=["Health Check"])
 def health_check():
     """
