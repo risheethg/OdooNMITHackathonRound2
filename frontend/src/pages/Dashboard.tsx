@@ -229,7 +229,7 @@ const OrdersTable = ({ statusFilter, searchTerm, onDeleteOrder, onCompleteOrder,
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.created_at).toLocaleDateString()}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
                                     <Button variant="ghost" size="sm" onClick={() => onCompleteOrder(order.mo_id)} disabled={order.status === 'done'}>
                                         <CheckCircle className="h-4 w-4 text-green-500" />
                                     </Button>

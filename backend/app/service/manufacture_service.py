@@ -109,7 +109,7 @@ class ManufacturingOrderService:
         logs.define_logger(20, f"Completing manufacturing order: {mo_id}", loggName=inspect.stack()[0])
         
         # Get the manufacturing order
-        order = self.mo_repo.get_by_id(mo_id)
+        order = self.mo_repo.find_one({"mo_id": mo_id})
         if not order:
             raise HTTPException(status_code=404, detail="Manufacturing Order not found.")
         
@@ -120,6 +120,7 @@ class ManufacturingOrderService:
             raise HTTPException(status_code=400, detail="Manufacturing Order must be in progress to complete.")
         
         # Get BOM snapshot from the order
+        order_internal_id = str(order["_id"])
         bom_snapshot = order.get("bom_snapshot", {})
         quantity_to_produce = order.get("quantity_to_produce", 0)
         
@@ -134,8 +135,8 @@ class ManufacturingOrderService:
             consumption_entry = StockLedgerEntryCreate(
                 product_id=component_id,
                 quantity_change=-total_consumption,
-                reason=f"Consumption for MO-{mo_id}",
-                manufacturing_order_id=mo_id
+                reason=f"Consumption for {order['mo_id']}",
+                manufacturing_order_id=order_internal_id
             )
             ledger_entries.append(consumption_entry.model_dump())
         
@@ -143,8 +144,8 @@ class ManufacturingOrderService:
         production_entry = StockLedgerEntryCreate(
             product_id=bom_snapshot.get("product_id"),
             quantity_change=quantity_to_produce,
-            reason=f"Production from MO-{mo_id}",
-            manufacturing_order_id=mo_id
+            reason=f"Production from {order['mo_id']}",
+            manufacturing_order_id=order_internal_id
         )
         ledger_entries.append(production_entry.model_dump())
         
@@ -155,7 +156,7 @@ class ManufacturingOrderService:
             self.stock_repo.create(entry)
         
         # Update MO status to done
-        self.mo_repo.update(mo_id, {"status": "done"})
+        self.mo_repo.update(order_internal_id, {"status": "done"})
         
         logs.define_logger(20, f"Manufacturing order {mo_id} completed successfully", loggName=inspect.stack()[0])
         
