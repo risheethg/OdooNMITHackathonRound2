@@ -13,6 +13,7 @@ import { ClipboardList, Play, Pause, CheckCircle, Search, Filter } from "lucide-
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAuth } from "@/Root";
 
 // --- API Service Functions ---
 
@@ -33,24 +34,31 @@ export interface WorkCenter {
   code: string;
 }
 
-export const getWorkOrders = async (): Promise<WorkOrder[]> => {
-  const response = await fetch(`${API_URL}/work-orders/`);
+export const getWorkOrders = async (token: string): Promise<WorkOrder[]> => {
+  const response = await fetch(`${API_URL}/api/work-orders/`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   if (!response.ok) throw new Error('Failed to fetch work orders');
   const result = await response.json();
   return result.data;
 };
 
-export const getWorkCenters = async (): Promise<WorkCenter[]> => {
-  const response = await fetch(`${API_URL}/work-centres/`);
+export const getWorkCenters = async (token: string): Promise<WorkCenter[]> => {
+  const response = await fetch(`${API_URL}/api/work-centres/`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   if (!response.ok) throw new Error('Failed to fetch work centers');
   const result = await response.json();
   return result.data;
 };
 
-export const updateWorkOrderStatus = async ({ wo_id, status }: { wo_id: string; status: WorkOrder['status'] }): Promise<any> => {
-  const response = await fetch(`${API_URL}/work-orders/${wo_id}/status`, {
+export const updateWorkOrderStatus = async ({ wo_id, status, token }: { wo_id: string; status: WorkOrder['status']; token: string }): Promise<any> => {
+  const response = await fetch(`${API_URL}/api/work-orders/${wo_id}/status`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
     body: JSON.stringify({ status }),
   });
   if (!response.ok) {
@@ -64,21 +72,26 @@ const WorkOrders = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const token = localStorage.getItem('access_token');
 
   const { data: workOrders = [], isLoading, error } = useQuery<WorkOrder[], Error>({
     queryKey: ['workOrders'],
-    queryFn: getWorkOrders,
+    queryFn: () => getWorkOrders(token!),
+    enabled: !!token,
   });
 
   const { data: workCenters = [] } = useQuery<WorkCenter[], Error>({
     queryKey: ['workCenters'],
-    queryFn: getWorkCenters,
+    queryFn: () => getWorkCenters(token!),
+    enabled: !!token,
   });
 
   const workCenterMap = useMemo(() => new Map(workCenters.map(wc => [wc._id, wc.name])), [workCenters]);
 
   const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutation({
-    mutationFn: updateWorkOrderStatus,
+    mutationFn: ({ wo_id, status }: { wo_id: string; status: WorkOrder['status'] }) => 
+      updateWorkOrderStatus({ wo_id, status, token: token! }),
     onSuccess: () => {
       toast.success("Work order status updated!");
       queryClient.invalidateQueries({ queryKey: ['workOrders'] });
