@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, FileText, Settings, LogOut, X } from "lucide-react";
+import { useAuth } from "@/Root";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase";
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -10,6 +13,14 @@ interface ProfileSidebarProps {
 }
 
 const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    navigate('/login');
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="left" className="w-80 p-0">
@@ -24,19 +35,21 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
         
         <div className="p-6">
           {/* User Profile Section */}
-          <div className="flex items-center gap-4 mb-6">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
-              <AvatarFallback className="text-lg">
-                <User className="h-8 w-8" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-semibold text-lg">John Doe</h3>
-              <p className="text-muted-foreground">Manufacturing Supervisor</p>
-              <p className="text-sm text-muted-foreground">john.doe@company.com</p>
+          {user && (
+            <div className="flex items-center gap-4 mb-6">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                <AvatarFallback className="text-lg">
+                  {user.displayName ? user.displayName.charAt(0).toUpperCase() : <User className="h-8 w-8" />}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold text-lg">{user.displayName || 'User'}</h3>
+                <p className="text-muted-foreground">Manufacturing Supervisor</p>
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Navigation Links */}
           <nav className="space-y-2">
@@ -64,7 +77,11 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
 
           {/* Logout Button */}
           <div className="mt-8 pt-4 border-t">
-            <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-destructive hover:text-destructive"
+              onClick={handleSignOut}
+            >
               <LogOut className="h-4 w-4 mr-3" />
               Sign Out
             </Button>
