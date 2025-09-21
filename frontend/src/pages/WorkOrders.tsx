@@ -9,11 +9,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { AccessDenied } from "@/components/ui/access-denied";
 import { ClipboardList, Play, Pause, CheckCircle, Search, Filter } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/Root";
+import { handleApiResponse, isAccessDeniedError } from "@/services/api-utils";
 
 // --- API Service Functions ---
 
@@ -35,22 +37,36 @@ export interface WorkCenter {
 }
 
 export const getWorkOrders = async (token: string): Promise<WorkOrder[]> => {
+  console.log('Fetching work orders with token:', token ? 'present' : 'missing');
   const response = await fetch(`${API_URL}/api/work-orders/`, {
     headers: { Authorization: `Bearer ${token}` }
   });
-  if (!response.ok) throw new Error('Failed to fetch work orders');
-  const result = await response.json();
+  console.log('Work Orders response status:', response.status);
+  
+  if (response.status === 403) {
+    console.log('Access denied for work orders');
+    throw new Error('ACCESS_DENIED');
+  }
+  
+  const result = await handleApiResponse(response);
   console.log('Work Orders API Response:', result);
   // Work orders route returns data directly (not wrapped)
   return Array.isArray(result) ? result : result.data || [];
 };
 
 export const getWorkCenters = async (token: string): Promise<WorkCenter[]> => {
+  console.log('Fetching work centers with token:', token ? 'present' : 'missing');
   const response = await fetch(`${API_URL}/api/work-centres/`, {
     headers: { Authorization: `Bearer ${token}` }
   });
-  if (!response.ok) throw new Error('Failed to fetch work centers');
-  const result = await response.json();
+  console.log('Work Centers response status:', response.status);
+  
+  if (response.status === 403) {
+    console.log('Access denied for work centers');
+    throw new Error('ACCESS_DENIED');
+  }
+  
+  const result = await handleApiResponse(response);
   console.log('Work Centers API Response:', result);
   // Work centres route returns wrapped data: { data: [...] }
   return result.data || [];
@@ -65,11 +81,7 @@ export const updateWorkOrderStatus = async ({ wo_id, status, token }: { wo_id: s
     },
     body: JSON.stringify({ status }),
   });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || 'Failed to update work order status');
-  }
-  return response.json();
+  return handleApiResponse(response);
 };
 
 const WorkOrders = () => {
@@ -84,16 +96,21 @@ const WorkOrders = () => {
     return <div>Please log in to view work orders.</div>;
   }
 
+  console.log('Current user:', user);
+  console.log('Token exists:', !!token);
+
   const { data: workOrders = [], isLoading, error } = useQuery<WorkOrder[], Error>({
     queryKey: ['workOrders'],
     queryFn: () => getWorkOrders(token!),
     enabled: !!token,
+    retry: false, // Don't retry on access denied errors
   });
 
   const { data: workCenters = [] } = useQuery<WorkCenter[], Error>({
     queryKey: ['workCenters'],
     queryFn: () => getWorkCenters(token!),
     enabled: !!token,
+    retry: false, // Don't retry on access denied errors
   });
 
   console.log('Work Orders State:', { workOrders, isLoading, error, token: !!token });
@@ -142,7 +159,14 @@ const WorkOrders = () => {
   };
 
   if (isLoading) return <div className="text-center p-8">Loading work orders...</div>;
-  if (error) return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
+  
+  if (error) {
+    console.log('Error details:', error);
+    if (error.message === 'ACCESS_DENIED') {
+      return <AccessDenied resource="Work Orders" />;
+    }
+    return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
+  }
   
   console.log('Filtered Work Orders:', filteredWorkOrders);
 

@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { AccessDenied } from "@/components/ui/access-denied";
 import { Plus, Search, Edit, Trash2, FileText, Package, Settings, X, ChevronsUpDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner"; // Assuming you have a toast library like sonner
 import { useAuth } from "@/Root";
+import { handleApiResponse, isAccessDeniedError } from "@/services/api-utils";
 
 // --- API SERVICE AND TYPES (Integrated for self-containment) ---
 const API_URL = "http://127.0.0.1:8000";
@@ -48,8 +50,7 @@ const getProducts = async (token: string): Promise<Product[]> => {
 };
 const getBOMs = async (token: string): Promise<BOM[]> => {
     const response = await fetch(`${API_URL}/api/boms/`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!response.ok) throw new Error("Failed to fetch BOMs");
-    const result: ApiResponse<BOM[]> = await response.json();
+    const result: ApiResponse<BOM[]> = await handleApiResponse(response);
     return result.data;
 };
 const createBOM = async (bomData: BOMCreate, token: string): Promise<BOM> => {
@@ -284,6 +285,15 @@ const BOM = () => {
 
   const { data: products = [] } = useQuery<Product[], Error>({ queryKey: ["products"], queryFn: () => getProducts(token!), enabled: !!token });
   const { data: boms = [], isLoading, error } = useQuery<BOM[], Error>({ queryKey: ["boms"], queryFn: () => getBOMs(token!), enabled: !!token });
+
+  // Handle loading and error states
+  if (isLoading) return <div className="text-center p-8">Loading BOMs...</div>;
+  if (error) {
+    if (isAccessDeniedError(error)) {
+      return <AccessDenied resource="Bills of Material" />;
+    }
+    return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
+  }
 
   const { mutate: deleteBomMutation } = useMutation({
       mutationFn: (bomId: string) => deleteBOM({ bomId, token: token! }),
