@@ -1,3 +1,5 @@
+Demo Link : https://drive.google.com/drive/folders/1j1SLKixWeDG7ZQncq-B5wr2DxwGoewXs?usp=sharing
+
  # Manufacturing Management System
 
 A full-stack application designed to streamline and automate the entire manufacturing process, from inventory and resource management to production order tracking and real-time analytics.
