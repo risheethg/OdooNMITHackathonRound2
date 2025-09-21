@@ -1,13 +1,23 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { ProfileSidebar } from "./ProfileSidebar";
 import { MainSidebar } from "./MainSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Factory, User } from "lucide-react";
+import { Factory, User, LogOut } from "lucide-react";
+import { useAuth } from "@/Root";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase";
 
 const AppLayout = () => {
   const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -28,21 +38,29 @@ const AppLayout = () => {
             <Factory className="h-6 w-6 text-primary" />
             <h1 className="text-lg font-semibold">Manufacturing Management</h1>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsProfileSidebarOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
-              <AvatarFallback>
-                <User className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium">John Doe</span>
-          </Button>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsProfileSidebarOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : <User className="h-4 w-4" />}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">{user.displayName || 'User'}</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => navigate('/login')}>Sign In</Button>
+            )}
+          </div>
         </header>
 
         {/* Main Content */}
