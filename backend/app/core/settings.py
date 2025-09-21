@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     # --- Firebase Settings
     # Defaults to 'serviceAccountToken.json' if the env var is not set.
-    GOOGLE_APPLICATION_CREDENTIALS: str = "serviceAccountToken.json"
+    GOOGLE_APPLICATION_CREDENTIALS: str = "serviceAccountKey.json"
 
     @field_validator("GOOGLE_APPLICATION_CREDENTIALS")
     @classmethod

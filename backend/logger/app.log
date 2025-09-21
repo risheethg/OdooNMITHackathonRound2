@@ -686,3 +686,7 @@
 2025-09-21 05:51:29,140 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/inventory/availability - MESSAGE: Fetching current inventory availability... - PID: 99419 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/routes/inventory_route.py:get_current_inventory_availability
 2025-09-21 05:51:29,143 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/inventory/availability - MESSAGE: Inventory availability fetched successfully. - PID: 99419 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/routes/inventory_route.py:get_current_inventory_availability
 >>>>>>> Trigger
+2025-09-21 07:56:00,320 - APP-BE - INFO - MESSAGE: Application startup... - PID: 2844 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 07:56:00,373 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 2844 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 08:55:05,644 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 2844 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 08:55:05,650 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 2844 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
