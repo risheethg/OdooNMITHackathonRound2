@@ -1016,3 +1016,11 @@ mo_id
 mo_id
   Field required [type=missing, input_value={'product_id': '68cf2760b...er', status='pending')]}, input_type=dict]
     For further information visit https://errors.pydantic.dev/2.11/v/missing - PID: 2012 - FILE: C:\Dev\OdooNMITHackathonRound2\backend\app\routes\manufacture_routes.py:create_order
+2025-09-21 06:28:32,411 - APP-BE - INFO - MESSAGE: Application startup... - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 06:28:32,557 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 06:29:06,467 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/manufacturing-orders/ - MESSAGE: Fetching all manufacturing orders... - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\manufacture_routes.py:get_all_orders
+2025-09-21 06:29:06,488 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/manufacturing-orders/ - MESSAGE: Manufacturing orders fetched successfully. - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\manufacture_routes.py:get_all_orders
+2025-09-21 06:29:06,517 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/manufacturing-orders/ - MESSAGE: Fetching all manufacturing orders... - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\manufacture_routes.py:get_all_orders
+2025-09-21 06:29:06,519 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/manufacturing-orders/ - MESSAGE: Manufacturing orders fetched successfully. - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\manufacture_routes.py:get_all_orders
+2025-09-21 06:29:06,573 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/products/ - MESSAGE: Fetching all products... - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\product_routes.py:get_all_products
+2025-09-21 06:29:06,575 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/products/ - MESSAGE: Products fetched successfully. - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\product_routes.py:get_all_products

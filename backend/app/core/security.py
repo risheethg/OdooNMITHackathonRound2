@@ -47,7 +47,7 @@ async def get_current_active_user(
 ) -> User:
     """
     A dependency that:
-    1. Verifies the token using `get_current_user_token`.
+    1. Verifies the token using get_current_user_token.
     2. Fetches the user's profile from your Firestore database.
     3. Checks if the user exists and is active.
     
