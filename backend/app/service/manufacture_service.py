@@ -11,6 +11,8 @@ from ..repo.work_order_repo import WorkOrderRepository
 from ..models.manufacture import ManufacturingOrderCreate, ManufacturingOrder, WorkOrder, BillOfMaterials
 from ..models.ledger_model import StockLedgerEntryCreate
 from ..core.logger import logs
+from ..utils.websocket_manager import connection_manager
+from datetime import datetime, timezone
 from pymongo.database import Database
 
 class ManufacturingOrderService:
@@ -100,6 +102,30 @@ class ManufacturingOrderService:
             self.mo_repo.update(created_id, {"status": "in_progress"})
             self.wo_repo.update(first_wo_id, {"status": "in_progress"})
             logs.define_logger(20, f"Automatically started MO {created_id} and first WO {first_wo_id}", loggName=inspect.stack()[0])
+            # Broadcast MO + first WO started
+            ts = datetime.now(timezone.utc).isoformat()
+            await connection_manager.send_to_topic(
+                project_id=created_id,
+                topic="mo_status",
+                data={
+                    "event": "manufacturing_order_started",
+                    "mo_id": created_id,
+                    "status": "in_progress",
+                    "timestamp": ts,
+                },
+            )
+            await connection_manager.send_to_topic(
+                project_id=first_wo_id,
+                topic="wo_status",
+                data={
+                    "event": "work_order_auto_started",
+                    "mo_id": created_id,
+                    "work_order_id": first_wo_id,
+                    "previous_status": "pending",
+                    "status": "in_progress",
+                    "timestamp": ts,
+                },
+            )
         
         return {"mo_id": created_id}
 
@@ -186,5 +212,17 @@ class ManufacturingOrderService:
         self.mo_repo.update(mo_id, {"status": "done"})
         
         logs.define_logger(20, f"Manufacturing order {mo_id} completed successfully", loggName=inspect.stack()[0])
+        # Broadcast MO completion
+        ts = datetime.now(timezone.utc).isoformat()
+        await connection_manager.send_to_topic(
+            project_id=mo_id,
+            topic="mo_status",
+            data={
+                "event": "manufacturing_order_completed",
+                "mo_id": mo_id,
+                "status": "done",
+                "timestamp": ts,
+            },
+        )
         
         return {"message": "Manufacturing Order completed successfully", "mo_id": mo_id}

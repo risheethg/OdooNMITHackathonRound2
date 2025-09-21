@@ -2,6 +2,7 @@ import inspect
 from datetime import datetime, timedelta
 from pymongo.database import Database
 from typing import List
+from pymongo.database import Database
 from app.core.logger import logs
 from app.repo.manufacture_repo import ManufacturingOrderRepository
 from app.models.analytics_model import StatusOverview, AverageCycleTime, ThroughputDataPoint
@@ -11,6 +12,7 @@ class AnalyticsService:
     Contains the business logic for calculating analytics and KPIs.
     """
     def __init__(self, db: Database):
+        # Repository expects a Database instance
         self.mo_repository = ManufacturingOrderRepository(db)
 
     async def get_status_overview(self) -> StatusOverview:
@@ -27,7 +29,8 @@ class AnalyticsService:
                     }
                 }
             ]
-            results = await self.mo_repository.aggregate(pipeline)
+            # BaseRepository doesn't expose aggregate; access underlying collection
+            results = list(self.mo_repository.collection.aggregate(pipeline))
             
             overview_data = {item['_id']: item['count'] for item in results}
             return StatusOverview(**overview_data)
@@ -67,7 +70,7 @@ class AnalyticsService:
                     }
                 }
             ]
-            results = await self.mo_repository.aggregate(pipeline)
+            results = list(self.mo_repository.collection.aggregate(pipeline))
             return [ThroughputDataPoint(**item) for item in results]
         except Exception as e:
             logs.define_logger(50, f"Error in get_production_throughput: {e}", loggName=inspect.stack()[0])
@@ -98,7 +101,7 @@ class AnalyticsService:
                     }
                 }
             ]
-            results = await self.mo_repository.aggregate(pipeline)
+            results = list(self.mo_repository.collection.aggregate(pipeline))
 
             if not results:
                 return AverageCycleTime(average_hours=0, average_minutes=0, total_orders_calculated=0)

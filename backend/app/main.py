@@ -17,6 +17,7 @@ from app.routes.work_centre_route import router as work_centre_router
 from app.routes.user_routes import router as user_router
 from app.routes import product_routes, bom_route
 from app.routes.manufacture_routes import router as manufacture_router
+from app.routes.websocket_routes import router as websocket_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.stock_routes import router as stock_router
 from app.routes.analytics_routes import router as analytics_router
@@ -63,6 +64,7 @@ app.include_router(bom_route.router)
 app.include_router(manufacture_router)
 app.include_router(ledger_router)
 app.include_router(stock_router)
+app.include_router(websocket_router)
 
 @app.get("/", tags=["Health Check"])
 def health_check():
