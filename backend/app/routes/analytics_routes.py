@@ -4,9 +4,10 @@ import os
 from fastapi import APIRouter, Request, Depends, Query
 from fastapi.responses import JSONResponse
 
-from app.core.logger import logs
+from app.app.core.logger import logs
 from app.service.analytics_service import AnalyticsService
 from app.utils.response_model import response
+from app.core.db_connection import get_db
 from app.models.analytics_model import ProductionThroughput
 from app.core.security import RoleChecker
 from app.models.user_model import UserRole

@@ -20,6 +20,11 @@ from app.routes.manufacture_routes import router as manufacture_router
 from app.routes.websocket_routes import router as websocket_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.stock_routes import router as stock_router
+<<<<<<< HEAD
+from app.routes.analytics_routes import router as analytics_router
+=======
+from app.routes.inventory_route import router as inventory_router
+>>>>>>> Trigger
 from app.core.logger import logs 
 from app.service.automation_service import AutomationService
 from app.service.polling_service import polling_service
@@ -63,7 +68,11 @@ app.include_router(bom_route.router)
 app.include_router(manufacture_router)
 app.include_router(ledger_router)
 app.include_router(stock_router)
+<<<<<<< HEAD
 app.include_router(websocket_router)
+=======
+app.include_router(inventory_router)
+>>>>>>> Trigger
 
 @app.get("/", tags=["Health Check"])
 def health_check():
@@ -75,6 +84,7 @@ def health_check():
 app.include_router(work_order_router)
 app.include_router(work_centre_router)
 app.include_router(user_router)
+app.include_router(analytics_router)
 
 
 if __name__ == "__main__":
