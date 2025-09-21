@@ -1,44 +1,119 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ClipboardList, Play, Pause, CheckCircle, Search, Filter } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+// --- API Service Functions ---
+
+const API_URL = "http://127.0.0.1:8000";
+
+export interface WorkOrder {
+  _id: string;
+  name: string;
+  manufacturingOrderId: string;
+  status: 'Planned' | 'In Progress' | 'Paused' | 'Completed' | 'Canceled';
+  expectedDuration: number;
+  workCenterId?: string;
+}
+
+export interface WorkCenter {
+  _id: string;
+  name: string;
+  code: string;
+}
+
+export const getWorkOrders = async (): Promise<WorkOrder[]> => {
+  const response = await fetch(`${API_URL}/work-orders/`);
+  if (!response.ok) throw new Error('Failed to fetch work orders');
+  const result = await response.json();
+  return result.data;
+};
+
+export const getWorkCenters = async (): Promise<WorkCenter[]> => {
+  const response = await fetch(`${API_URL}/work-centres/`);
+  if (!response.ok) throw new Error('Failed to fetch work centers');
+  const result = await response.json();
+  return result.data;
+};
+
+export const updateWorkOrderStatus = async ({ wo_id, status }: { wo_id: string; status: WorkOrder['status'] }): Promise<any> => {
+  const response = await fetch(`${API_URL}/work-orders/${wo_id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to update work order status');
+  }
+  return response.json();
+};
 
 const WorkOrders = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
 
-  const mockWorkOrders = [
-    {
-      id: "WO-001",
-      manufacturingOrderId: "MO-2024-001",
-      operation: "Steel Cutting",
-      workCenter: "Cutting Station 1",
-      assignee: "John Smith",
-      status: "started",
-      estimatedDuration: "4 hours",
+  const { data: workOrders = [], isLoading, error } = useQuery<WorkOrder[], Error>({
+    queryKey: ['workOrders'],
+    queryFn: getWorkOrders,
+  });
+
+  const { data: workCenters = [] } = useQuery<WorkCenter[], Error>({
+    queryKey: ['workCenters'],
+    queryFn: getWorkCenters,
+  });
+
+  const workCenterMap = useMemo(() => new Map(workCenters.map(wc => [wc._id, wc.name])), [workCenters]);
+
+  const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: updateWorkOrderStatus,
+    onSuccess: () => {
+      toast.success("Work order status updated!");
+      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
     },
-    {
-      id: "WO-002",
-      manufacturingOrderId: "MO-2024-001",
-      operation: "Welding",
-      workCenter: "Welding Bay 2",
-      assignee: "Sarah Johnson",
-      status: "paused",
-      estimatedDuration: "6 hours",
-    },
-    {
-      id: "WO-003",
-      manufacturingOrderId: "MO-2024-002",
-      operation: "Assembly",
-      workCenter: "Assembly Line A",
-      assignee: "Mike Wilson",
-      status: "completed",
-      estimatedDuration: "8 hours",
-    },
-  ];
+    onError: (e: Error) => {
+      toast.error(`Failed to update status: ${e.message}`);
+    }
+  });
+
+  const filteredWorkOrders = useMemo(() => {
+    return workOrders.filter(order => {
+      const searchLower = searchTerm.toLowerCase();
+      const statusMatch = statusFilter === 'all' || order.status.toLowerCase().replace(/ /g, '-') === statusFilter;
+      const searchMatch =
+        order.name.toLowerCase().includes(searchLower) ||
+        order.manufacturingOrderId.toLowerCase().includes(searchLower) ||
+        (workCenterMap.get(order.workCenterId || '') || '').toLowerCase().includes(searchLower);
+      return statusMatch && searchMatch;
+    });
+  }, [workOrders, searchTerm, statusFilter, workCenterMap]);
+
+  const getStatusBadgeClass = (status: WorkOrder['status']) => {
+    switch (status) {
+      case 'In Progress': return 'status-progress';
+      case 'Paused': return 'status-planned';
+      case 'Completed': return 'status-completed';
+      case 'Canceled': return 'status-delayed';
+      case 'Planned':
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (isLoading) return <div className="text-center p-8">Loading work orders...</div>;
+  if (error) return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
 
   return (
     <div className="space-y-6">
@@ -72,9 +147,11 @@ const WorkOrders = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="started">Started</SelectItem>
+                <SelectItem value="planned">Planned</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
                 <SelectItem value="paused">Paused</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="canceled">Canceled</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -83,16 +160,12 @@ const WorkOrders = () => {
 
       {/* Work Orders Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockWorkOrders.map((order) => (
-          <Card key={order.id} className="hover:shadow-md transition-shadow">
+        {filteredWorkOrders.map((order) => (
+          <Card key={order._id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{order.id}</CardTitle>
-                <Badge className={
-                  order.status === "started" ? "status-progress" :
-                  order.status === "paused" ? "status-planned" :
-                  "status-completed"
-                }>
+                <CardTitle className="text-lg">{order.name}</CardTitle>
+                <Badge className={getStatusBadgeClass(order.status)}>
                   {order.status}
                 </Badge>
               </div>
@@ -100,35 +173,33 @@ const WorkOrders = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="font-medium">{order.operation}</p>
-                <p className="text-sm text-muted-foreground">{order.workCenter}</p>
-                <p className="text-sm text-muted-foreground">Assignee: {order.assignee}</p>
-                <p className="text-sm text-muted-foreground">Duration: {order.estimatedDuration}</p>
+                <p className="text-sm text-muted-foreground">Work Center: {workCenterMap.get(order.workCenterId || '') || 'N/A'}</p>
+                <p className="text-sm text-muted-foreground">Duration: {order.expectedDuration} minutes</p>
               </div>
               
               <div className="flex gap-2">
-                {order.status === "started" && (
+                {order.status === 'In Progress' && (
                   <>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" onClick={() => updateStatus({ wo_id: order._id, status: 'Paused' })} disabled={isUpdatingStatus}>
                       <Pause className="h-4 w-4 mr-1" />
                       Pause
                     </Button>
-                    <Button size="sm" className="bg-success hover:bg-success/90">
+                    <Button size="sm" className="bg-success hover:bg-success/90" onClick={() => updateStatus({ wo_id: order._id, status: 'Completed' })} disabled={isUpdatingStatus}>
                       <CheckCircle className="h-4 w-4 mr-1" />
                       Complete
                     </Button>
                   </>
                 )}
-                {order.status === "paused" && (
-                  <Button size="sm" className="bg-warning hover:bg-warning/90">
+                {order.status === 'Paused' && (
+                  <Button size="sm" className="bg-warning hover:bg-warning/90" onClick={() => updateStatus({ wo_id: order._id, status: 'In Progress' })} disabled={isUpdatingStatus}>
                     <Play className="h-4 w-4 mr-1" />
                     Resume
                   </Button>
                 )}
-                {order.status !== "completed" && order.status !== "started" && (
-                  <Button size="sm" className="bg-primary hover:bg-primary-hover">
+                {order.status === 'Planned' && (
+                  <Button size="sm" className="bg-primary hover:bg-primary-hover" onClick={() => updateStatus({ wo_id: order._id, status: 'In Progress' })} disabled={isUpdatingStatus}>
                     <Play className="h-4 w-4 mr-1" />
-                    Start Timer
+                    Start
                   </Button>
                 )}
               </div>

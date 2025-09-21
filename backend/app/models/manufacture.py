@@ -18,6 +18,7 @@ class WorkOrder(BaseDBModel):
 
 class ManufacturingOrder(BaseDBModel):
     """Represents a full production job to create a specific quantity of a product"""
+    mo_id: str = Field(..., description="Human-readable manufacturing order ID")
     product_id: str = Field(..., description="The finished good to produce")
     quantity_to_produce: int = Field(..., description="Quantity to produce")
     status: Literal["planned", "in_progress", "done", "cancelled"] = Field(default="planned")

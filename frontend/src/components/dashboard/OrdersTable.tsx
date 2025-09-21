@@ -1,128 +1,66 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Eye, Circle } from "lucide-react";
+import { Edit, Trash2, Eye, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { getManufacturingOrders, ManufacturingOrder } from "@/services/manufacturingOrders";
+import { useAuth } from "@/Root";
 
 interface OrdersTableProps {
   searchTerm: string;
   statusFilter: string;
 }
 
-const mockOrders = [
-  {
-    id: "MO-2024-001",
-    product: "Steel Frame Assembly",
-    quantity: 50,
-    scheduledDate: "2024-01-15",
-    assignee: "John Smith",
-    componentAvailability: "available",
-    status: "progress",
-  },
-  {
-    id: "MO-2024-002",
-    product: "Electric Motor Unit",
-    quantity: 25,
-    scheduledDate: "2024-01-18",
-    assignee: "Sarah Johnson",
-    componentAvailability: "not-available",
-    status: "planned",
-  },
-  {
-    id: "MO-2024-003",
-    product: "Control Panel Board",
-    quantity: 15,
-    scheduledDate: "2024-01-10",
-    assignee: "Mike Wilson",
-    componentAvailability: "available",
-    status: "completed",
-  },
-  {
-    id: "MO-2024-004",
-    product: "Hydraulic Cylinder",
-    quantity: 30,
-    scheduledDate: "2024-01-12",
-    assignee: "Lisa Chen",
-    componentAvailability: "available",
-    status: "delayed",
-  },
-  {
-    id: "MO-2024-005",
-    product: "Gear Box Assembly",
-    quantity: 20,
-    scheduledDate: "2024-01-20",
-    assignee: "David Brown",
-    componentAvailability: "available",
-    status: "planned",
-  },
-];
-
-const getStatusBadge = (status: string) => {
-  const statusConfig = {
-    planned: { label: "Planned", className: "status-planned" },
-    progress: { label: "In Progress", className: "status-progress" },
-    completed: { label: "Completed", className: "status-completed" },
-    delayed: { label: "Delayed", className: "status-delayed" },
-  };
-
-  const config = statusConfig[status as keyof typeof statusConfig];
-  return (
-    <Badge className={cn("status-badge", config.className)}>
-      {config.label}
-    </Badge>
-  );
-};
-
-const getAvailabilityIndicator = (availability: string) => {
-  return (
-    <div className="flex items-center gap-2">
-      <Circle 
-        className={cn("h-3 w-3 fill-current", 
-          availability === "available" ? "text-success" : "text-destructive"
-        )} 
-      />
-      <span className="text-sm">
-        {availability === "available" ? "Available" : "Not Available"}
-      </span>
-    </div>
-  );
-};
-
 const OrdersTable = ({ searchTerm, statusFilter }: OrdersTableProps) => {
-  const filteredOrders = mockOrders.filter((order) => {
-    const matchesSearch = order.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.assignee.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  const { idToken } = useAuth();
+
+  const { data: orders, isLoading, error } = useQuery<ManufacturingOrder[], Error>({
+    queryKey: ['manufacturingOrders', statusFilter, searchTerm],
+    queryFn: () => getManufacturingOrders(statusFilter, searchTerm, idToken!),
+    enabled: !!idToken,
   });
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-40"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-destructive py-8">Error: {error.message}</div>;
+  }
 
   return (
     <div className="rounded-lg border overflow-hidden">
       <table className="data-table">
         <thead>
           <tr>
-            <th>Order ID</th>
             <th>Product Name</th>
+            <th>BOM ID</th>
             <th>Quantity</th>
-            <th>Scheduled Date</th>
-            <th>Assignee</th>
-            <th>Component Availability</th>
+            <th>Created At</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {filteredOrders.map((order) => (
-            <tr key={order.id}>
-              <td className="font-mono text-sm font-medium">{order.id}</td>
-              <td className="font-medium">{order.product}</td>
+          {orders?.map((order) => (
+            <tr key={order._id}>
+              <td className="font-medium">{order.productName}</td>
+              <td className="font-mono text-sm">{order.bomId}</td>
               <td>{order.quantity}</td>
-              <td>{new Date(order.scheduledDate).toLocaleDateString()}</td>
-              <td>{order.assignee}</td>
-              <td>{getAvailabilityIndicator(order.componentAvailability)}</td>
-              <td>{getStatusBadge(order.status)}</td>
+              <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+              <td>
+                <Badge
+                  className={cn(
+                    "status-badge",
+                    order.status === "progress" ? "status-progress" :
+                    order.status === "planned" ? "status-planned" :
+                    order.status === "completed" ? "status-completed" :
+                    "status-delayed"
+                  )}
+                >
+                  {order.status}
+                </Badge>
+              </td>
               <td>
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="sm">
@@ -141,7 +79,7 @@ const OrdersTable = ({ searchTerm, statusFilter }: OrdersTableProps) => {
         </tbody>
       </table>
       
-      {filteredOrders.length === 0 && (
+      {orders?.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           No orders found matching your criteria.
         </div>

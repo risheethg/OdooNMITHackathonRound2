@@ -35,9 +35,26 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication credentials: {e}",
         )
+
+
+async def get_current_active_user(
+    decoded_token: dict = Depends(get_current_user_token)
+) -> User:
+    """
+    A dependency that:
+    1. Verifies the token using get_current_user_token.
+    2. Fetches the user's profile from your Firestore database.
+    3. Checks if the user exists and is active.
     
-    user_repo = UserRepository(db)
-    user = user_repo.get_by_uid(uid)
+    Use this for all endpoints that require an authenticated user
+    who already has a profile in your database (e.g., /me, /login, etc.).
+    """
+    user_uid = decoded_token.get("uid")
+    if not user_uid:
+        raise HTTPException(status_code=400, detail="User ID (uid) not found in token.")
+    
+    # Fetch the user from Firestore
+    user = await users_repo.get(uid=user_uid)
     
     if not user:
         raise HTTPException(
