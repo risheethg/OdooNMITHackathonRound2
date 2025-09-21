@@ -1391,3 +1391,72 @@ mo_id
 2025-09-21 06:29:06,519 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/manufacturing-orders/ - MESSAGE: Manufacturing orders fetched successfully. - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\manufacture_routes.py:get_all_orders
 2025-09-21 06:29:06,573 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/products/ - MESSAGE: Fetching all products... - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\product_routes.py:get_all_products
 2025-09-21 06:29:06,575 - APP-BE - INFO - IP: 127.0.0.1 - URL: GET http://127.0.0.1:8000/products/ - MESSAGE: Products fetched successfully. - PID: 14000 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\routes\product_routes.py:get_all_products
+2025-09-21 09:18:49,449 - APP-BE - INFO - MESSAGE: Application startup... - PID: 37612 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:18:49,449 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 37612 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:20:39,794 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\sreeh\AppData\Local\Programs\Python\Python312\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-21 09:20:40,639 - APP-BE - INFO - MESSAGE: Successfully created user with ID: 68cf7610e671bb2ea0b7442e - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\service\user_service.py:create_user
+2025-09-21 09:21:41,253 - APP-BE - INFO - MESSAGE: Successfully created user with ID: 68cf764de671bb2ea0b7442f - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\service\user_service.py:create_user
+2025-09-21 09:22:00,908 - APP-BE - ERROR - MESSAGE: Error logging in user: 1 validation error for UserResponse
+_id
+  Input should be a valid string [type=string_type, input_value=ObjectId('68cf764de671bb2ea0b7442f'), input_type=ObjectId]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\service\user_service.py:login_user
+2025-09-21 09:23:47,290 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 37612 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:23:47,301 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 37612 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:23:51,092 - APP-BE - INFO - MESSAGE: Application startup... - PID: 26664 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:23:51,092 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 26664 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:23:54,023 - APP-BE - INFO - MESSAGE: Application startup... - PID: 39788 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:23:54,023 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 39788 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:25:01,910 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 39788 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:25:01,922 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 39788 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:25:05,365 - APP-BE - INFO - MESSAGE: Application startup... - PID: 37544 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:25:05,365 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 37544 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:25:11,899 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\sreeh\AppData\Local\Programs\Python\Python312\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-21 09:27:12,296 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 37544 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:27:12,306 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 37544 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:27:15,380 - APP-BE - INFO - MESSAGE: Application startup... - PID: 8984 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:27:15,380 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 8984 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:27:31,580 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\sreeh\AppData\Local\Programs\Python\Python312\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-09-21 09:28:15,956 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 8984 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:28:15,969 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 8984 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:28:45,314 - APP-BE - INFO - MESSAGE: Application startup... - PID: 13916 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:28:45,315 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 13916 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:30:15,017 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 13916 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:30:15,024 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 13916 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:30:17,992 - APP-BE - INFO - MESSAGE: Application startup... - PID: 35248 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:30:17,992 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 35248 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:15,282 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 35248 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:15,295 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 35248 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:19,065 - APP-BE - INFO - MESSAGE: Application startup... - PID: 30404 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:19,065 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 30404 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:43,069 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 30404 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:43,078 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 30404 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:46,086 - APP-BE - INFO - MESSAGE: Application startup... - PID: 38100 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:46,087 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 38100 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:52,571 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 38100 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:52,577 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 38100 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:55,291 - APP-BE - INFO - MESSAGE: Application startup... - PID: 18352 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:31:55,292 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 18352 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:32:00,392 - APP-BE - ERROR - MESSAGE: Error logging in user: 'Settings' object has no attribute 'secret_key' - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\service\user_service.py:login_user
+2025-09-21 09:32:59,703 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 18352 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:32:59,714 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 18352 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:33:02,441 - APP-BE - INFO - MESSAGE: Application startup... - PID: 22920 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:33:02,442 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 22920 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:33:04,995 - APP-BE - INFO - MESSAGE: Application startup... - PID: 24908 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:33:04,995 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 24908 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:35:58,562 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 24908 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan
+2025-09-21 09:35:58,573 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 24908 - FILE: C:\Users\sreeh\Documents\GitHub\odoohack2\backend\app\main.py:lifespan

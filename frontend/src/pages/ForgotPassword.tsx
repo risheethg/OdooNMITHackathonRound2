@@ -5,8 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Factory, Mail, ArrowLeft } from "lucide-react";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/firebase";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");

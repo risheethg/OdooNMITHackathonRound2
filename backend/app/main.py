@@ -7,13 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 
 # Importing the connection manager from the core directory
 from app.core.db_connection import DBConnection
-# Import the Firebase initialization function
-from app.core.firebase_app import initialize_firebase
-# Import the authentication routes
+# Import the routes
 from pymongo import MongoClient
 from app.core.db_connection import DBConnection
 
-from app.routes.auth_routes import router as auth_router
+from app.routes.user_routes import router as auth_router, user_router
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
 from app.routes import product_routes, bom_route
@@ -32,7 +30,6 @@ import os
 async def lifespan(app: FastAPI):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Application startup...", loggName=log_info, pid=os.getpid())
-    initialize_firebase()
     db_connection = DBConnection()
     app.state.db_connection = db_connection
     logs.define_logger(level=logging.INFO, message="MongoDB connection established.", loggName=log_info, pid=os.getpid())
@@ -73,7 +70,8 @@ app.add_middleware(
 )
 # --------------------------------
 
-app.include_router(auth_router, prefix="/auth")
+app.include_router(auth_router, prefix="/api")
+app.include_router(user_router, prefix="/api")
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
 app.include_router(manufacture_router)

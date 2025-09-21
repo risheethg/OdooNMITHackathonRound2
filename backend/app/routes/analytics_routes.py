@@ -4,7 +4,7 @@ import os
 from fastapi import APIRouter, Request, Depends, Query
 from fastapi.responses import JSONResponse
 
-from app.app.core.logger import logs
+from app.core.logger import logs
 from app.service.analytics_service import AnalyticsService
 from app.utils.response_model import response
 from app.core.db_connection import get_db

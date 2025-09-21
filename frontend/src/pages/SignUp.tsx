@@ -4,17 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Factory, Lock, Mail, User } from "lucide-react";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/firebase";
 import { useAuth } from "@/Root";
 
 const SignUp = () => {
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const { user, loading, register } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,12 +27,17 @@ const SignUp = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
+    setIsLoading(true);
+    
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName: fullName });
-      // The onAuthStateChanged listener in Root.tsx will handle the redirect and backend sync
+      await register(email, password, role);
+      setSuccess("Account created successfully! Please log in.");
+      // Navigation to login is handled in the register function
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Registration failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,22 +53,8 @@ const SignUp = () => {
         </CardHeader>
         <CardContent>
           {error && <p className="text-destructive text-sm text-center mb-4">{error}</p>}
+          {success && <p className="text-green-600 text-sm text-center mb-4">{success}</p>}
           <form onSubmit={handleSignUp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter your full name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -75,6 +67,7 @@ const SignUp = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -85,19 +78,36 @@ const SignUp = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a strong password"
+                  placeholder="Create a strong password (min 8 characters)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
+                  minLength={8}
+                  disabled={isLoading}
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select value={role} onValueChange={setRole} disabled={isLoading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Manufacturing Manager">Manufacturing Manager</SelectItem>
+                  <SelectItem value="Operator">Operator</SelectItem>
+                  <SelectItem value="Inventory Manager">Inventory Manager</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-primary to-primary-hover hover:shadow-md transition-all"
+              disabled={isLoading || !role}
             >
-              Create Account
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}

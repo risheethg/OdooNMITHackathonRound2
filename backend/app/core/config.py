@@ -13,23 +13,9 @@ class Settings(BaseSettings):
     MONGO_URI: str
     MONGO_DB_NAME: str
     LOGGER: int = logging.INFO 
-    # --- Firebase Settings
-    # Defaults to 'serviceAccountToken.json' if the env var is not set.
-    GOOGLE_APPLICATION_CREDENTIALS: str = "serviceAccountToken.json"
-
-    @field_validator("GOOGLE_APPLICATION_CREDENTIALS")
-    @classmethod
-    def validate_firebase_creds(cls, v: str) -> str:
-        """
-        Validates that the Firebase service account file exists at the given path.
-        """
-        if not os.path.exists(v):
-            raise FileNotFoundError(
-                f"Firebase credentials file not found at: '{v}'. "
-                "Please set the GOOGLE_APPLICATION_CREDENTIALS environment variable "
-                "or place the file in the project's root directory."
-            )
-        return v
+    # --- JWT Settings
+    secret_key: str
+    access_token_expire_minutes: int = 60 * 24 * 8  # 8 days
     
     # Configure Pydantic to load from a .env file
     model_config = SettingsConfigDict(

@@ -13,13 +13,7 @@ class UserRepository(BaseRepository):
         """
         Retrieves a single user document by their email address.
         """
-        return self.collection.find_one({"email": email})
-
-    def get_by_uid(self, uid: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieves a single user document by their Firebase UID.
-        """
-        return self.find_one({"uid": uid})
+        return self.find_one({"email": email})
 
 def get_user_repo() -> UserRepository:
     db = get_db()

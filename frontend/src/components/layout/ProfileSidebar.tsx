@@ -4,8 +4,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, FileText, Settings, LogOut, X } from "lucide-react";
 import { useAuth } from "@/Root";
-import { signOut } from "firebase/auth";
-import { auth } from "@/firebase";
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -13,12 +11,17 @@ interface ProfileSidebarProps {
 }
 
 const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    await signOut(auth);
-    navigate('/login');
+  const handleSignOut = () => {
+    logout();
+    onClose();
+  };
+
+  // Get user initials for avatar fallback
+  const getUserInitials = (email: string) => {
+    return email.split('@')[0].charAt(0).toUpperCase();
   };
 
   return (
@@ -38,14 +41,14 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
           {user && (
             <div className="flex items-center gap-4 mb-6">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
                 <AvatarFallback className="text-lg">
-                  {user.displayName ? user.displayName.charAt(0).toUpperCase() : <User className="h-8 w-8" />}
+                  {getUserInitials(user.email)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold text-lg">{user.displayName || 'User'}</h3>
-                <p className="text-muted-foreground">Manufacturing Supervisor</p>
+                <h3 className="font-semibold text-lg">{user.email.split('@')[0]}</h3>
+                <p className="text-muted-foreground">{user.role}</p>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
             </div>

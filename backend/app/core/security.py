@@ -5,9 +5,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pymongo.database import Database
 from typing import List
 
-from firebase_admin import auth, exceptions
-
 from app.core.db_connection import get_db
+from app.core.auth import verify_token
 from app.models.user_model import User, UserRole
 from app.repo.user_repo import UserRepository
 
@@ -19,50 +18,37 @@ async def get_current_user(
     token: HTTPAuthorizationCredentials = Depends(oauth2_scheme)
 ) -> User:
     """
-    Dependency to get the current user from a Firebase ID token.
+    Dependency to get the current user from a JWT token.
     Verifies the token, then fetches the user from the local database.
     """
-    try:
-        decoded_token = auth.verify_id_token(token.credentials)
-        uid = decoded_token.get("uid")
-        if not uid:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials: UID not found in token.",
-            )
-    except exceptions.FirebaseError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication credentials: {e}",
-        )
-
-
-async def get_current_active_user(
-    decoded_token: dict = Depends(get_current_user_token)
-) -> User:
-    """
-    A dependency that:
-    1. Verifies the token using get_current_user_token.
-    2. Fetches the user's profile from your Firestore database.
-    3. Checks if the user exists and is active.
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     
-    Use this for all endpoints that require an authenticated user
-    who already has a profile in your database (e.g., /me, /login, etc.).
-    """
-    user_uid = decoded_token.get("uid")
-    if not user_uid:
-        raise HTTPException(status_code=400, detail="User ID (uid) not found in token.")
+    # Verify the JWT token
+    user_id = verify_token(token.credentials)
+    if user_id is None:
+        raise credentials_exception
     
-    # Fetch the user from Firestore
-    user = await users_repo.get(uid=user_uid)
+    # Fetch the user from the database
+    user_repo = UserRepository(db)
+    user = user_repo.get_by_id(user_id)
     
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User not found in our system. Please register first.",
-        )
+    if user is None:
+        raise credentials_exception
     
     return User.model_validate(user)
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    A dependency that returns the current authenticated user.
+    Use this for all endpoints that require an authenticated user.
+    """
+    return current_user
 
 class RoleChecker:
     """
@@ -77,3 +63,4 @@ class RoleChecker:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to access this resource."
             )
+        return user

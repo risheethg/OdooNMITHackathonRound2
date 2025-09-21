@@ -5,9 +5,16 @@ import { MainSidebar } from "./MainSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Factory, User } from "lucide-react";
+import { useAuth } from "@/Root";
 
 const AppLayout = () => {
   const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
+  const { user } = useAuth();
+
+  // Get user initials for avatar fallback
+  const getUserInitials = (email: string) => {
+    return email.split('@')[0].charAt(0).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -38,10 +45,10 @@ const AppLayout = () => {
             <Avatar className="h-8 w-8">
               <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
               <AvatarFallback>
-                <User className="h-4 w-4" />
+                {user ? getUserInitials(user.email) : <User className="h-4 w-4" />}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm font-medium">John Doe</span>
+            <span className="text-sm font-medium">{user?.email || "User"}</span>
           </Button>
         </header>
 

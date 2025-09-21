@@ -16,21 +16,20 @@ class Settings(BaseSettings):
     # --- Logger Settings
     LOGGER: int = logging.INFO 
     
-    # --- Firebase Settings
-    # Defaults to 'serviceAccountToken.json' if the env var is not set.
-    GOOGLE_APPLICATION_CREDENTIALS: str = "serviceAccountToken.json"
+    # --- JWT Settings
+    secret_key: str
+    access_token_expire_minutes: int = 60 * 24 * 8  # 8 days
 
-    @field_validator("GOOGLE_APPLICATION_CREDENTIALS")
+    @field_validator("secret_key")
     @classmethod
-    def validate_firebase_creds(cls, v: str) -> str:
+    def validate_secret_key(cls, v: str) -> str:
         """
-        Validates that the Firebase service account file exists at the given path.
+        Validates that the SECRET_KEY is provided and not empty.
         """
-        if not os.path.exists(v):
-            raise FileNotFoundError(
-                f"Firebase credentials file not found at: '{v}'. "
-                "Please set the GOOGLE_APPLICATION_CREDENTIALS environment variable "
-                "or place the file in the project's root directory."
+        if not v or len(v) < 32:
+            raise ValueError(
+                "SECRET_KEY must be provided and be at least 32 characters long. "
+                "Generate one with: openssl rand -hex 32"
             )
         return v
     

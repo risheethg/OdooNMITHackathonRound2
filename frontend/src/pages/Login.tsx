@@ -5,12 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Factory, Lock, Mail } from "lucide-react";
-import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
-import { auth } from "@/firebase";
 import { useAuth } from "@/Root";
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +12,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { user, loading, login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,20 +25,15 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
+    
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // The onAuthStateChanged listener in Root.tsx will handle the redirect
+      await login(email, password);
+      // Navigation is handled in the login function
     } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -72,6 +62,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -87,6 +78,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -101,21 +93,9 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-primary to-primary-hover hover:shadow-md transition-all"
+              disabled={isLoading}
             >
-              Sign In
-            </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
-              Google
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}
