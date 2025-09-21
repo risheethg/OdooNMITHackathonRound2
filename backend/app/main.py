@@ -19,6 +19,7 @@ from app.routes import product_routes, bom_route
 from app.routes.manufacture_routes import router as manufacture_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.stock_routes import router as stock_router
+from app.routes.analytics_routes import router as analytics_router
 from app.core.logger import logs 
 from app.service.automation_service import AutomationService
 from app.service.polling_service import polling_service
@@ -73,6 +74,7 @@ def health_check():
 app.include_router(work_order_router)
 app.include_router(work_centre_router)
 app.include_router(user_router)
+app.include_router(analytics_router)
 
 
 if __name__ == "__main__":

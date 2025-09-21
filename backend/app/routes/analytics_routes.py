@@ -2,9 +2,10 @@ import inspect
 from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
-from core.logger import logs
+from app.core.logger import logs
 from app.service.analytics_service import AnalyticsService
 from app.utils.response_model import response
+from app.core.db_connection import get_db
 from app.models.analytics_model import ProductionThroughput
 from app.core.security import RoleChecker
 from app.models.user_model import UserRole
@@ -15,7 +16,7 @@ router = APIRouter(
     dependencies=[Depends(RoleChecker([UserRole.ADMIN]))]
 )
 
-analytics_service = AnalyticsService()
+analytics_service = AnalyticsService(get_db())
 
 @router.get("/overview", summary="Get Status Overview KPIs")
 async def get_status_overview(request: Request):

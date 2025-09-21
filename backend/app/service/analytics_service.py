@@ -1,5 +1,6 @@
 import inspect
 from datetime import datetime, timedelta
+from pymongo.database import Database
 from typing import List
 from app.core.logger import logs
 from app.repo.manufacture_repo import ManufacturingOrderRepository
@@ -9,8 +10,8 @@ class AnalyticsService:
     """
     Contains the business logic for calculating analytics and KPIs.
     """
-    def __init__(self):
-        self.mo_repository = ManufacturingOrderRepository()
+    def __init__(self, db: Database):
+        self.mo_repository = ManufacturingOrderRepository(db)
 
     async def get_status_overview(self) -> StatusOverview:
         """
