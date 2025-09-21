@@ -21,6 +21,7 @@ from app.routes.websocket_routes import router as websocket_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.stock_routes import router as stock_router
 from app.routes.analytics_routes import router as analytics_router
+from app.routes.auth_route import router as auth_router
 from app.core.logger import logs 
 from app.service.automation_service import AutomationService
 from app.service.polling_service import polling_service
@@ -58,7 +59,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
-
+app.include_router(auth_router)
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
 app.include_router(manufacture_router)
