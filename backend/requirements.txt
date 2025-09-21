@@ -1,7 +1,11 @@
 fastapi
-uvicorn
-pymongo==4.6.0
+uvicorn[standard]
+pymongo
+pydantic
+pydantic-settings
+firebase-admin
 python-jose[cryptography]
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
-python-multipart
+passlib[bcrypt]
+pandas
+reportlab
+python-dotenv
