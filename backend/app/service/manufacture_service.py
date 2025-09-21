@@ -70,6 +70,7 @@ class ManufacturingOrderService:
             work_orders_to_create.append(work_order)
         
         new_mo_model = ManufacturingOrder(
+                mo_id="1234",
                 product_id=order_data.product_id,
                 quantity_to_produce=order_data.quantity,
                 bom_snapshot=bom,

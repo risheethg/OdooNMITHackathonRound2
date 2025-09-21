@@ -24,7 +24,7 @@ export const getManufacturingOrders = async (
     params.append('q', searchTerm);
   }
 
-  const response = await fetch(`${API_URL}/manufacturing-orders?${params.toString()}`, {
+  const response = await fetch(`${API_URL}/api/manufacturing-orders?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 

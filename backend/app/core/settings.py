@@ -17,10 +17,10 @@ class Settings(BaseSettings):
     LOGGER: int = logging.INFO 
     
     # --- JWT Settings
-    secret_key: str
-    access_token_expire_minutes: int = 60 * 24 * 8  # 8 days
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
 
-    @field_validator("secret_key")
+    @field_validator("SECRET_KEY")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
         """

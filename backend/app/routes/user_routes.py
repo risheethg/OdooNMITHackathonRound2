@@ -22,7 +22,7 @@ def register_user(
     Register a new user. The user can specify their role upon creation.
     """
     result = service.create_user(data)
-    if not result.get("success", False):
+    if result.get("status") != "success":
         raise HTTPException(
             status_code=result.get("status_code", 400),
             detail=result.get("message", "Registration failed")
@@ -43,7 +43,7 @@ def login_user(
     Login user with email and password. Returns JWT token.
     """
     result = service.login_user(data)
-    if not result.get("success", False):
+    if result.get("status") != "success":
         raise HTTPException(
             status_code=result.get("status_code", 401),
             detail=result.get("message", "Login failed")

@@ -9,9 +9,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Plus, Search, Edit, Trash2, FileText, Package, Settings, X, ChevronsUpDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner"; // Assuming you have a toast library like sonner
-
-// --- MOCK AUTH HOOK (Replace with your actual auth context) ---
-const useAuth = () => ({ idToken: "mock-jwt-token-for-development" });
+import { useAuth } from "@/Root";
 
 // --- API SERVICE AND TYPES (Integrated for self-containment) ---
 const API_URL = "http://127.0.0.1:8000";
@@ -43,19 +41,19 @@ interface ApiResponse<T> { data: T; message: string; status_code: number; }
 
 // API Functions
 const getProducts = async (token: string): Promise<Product[]> => {
-    const response = await fetch(`${API_URL}/products/`, { headers: { Authorization: `Bearer ${token}` } });
+    const response = await fetch(`${API_URL}/api/products/`, { headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) throw new Error("Failed to fetch products");
     const result: ApiResponse<Product[]> = await response.json();
     return result.data;
 };
 const getBOMs = async (token: string): Promise<BOM[]> => {
-    const response = await fetch(`${API_URL}/boms/`, { headers: { Authorization: `Bearer ${token}` } });
+    const response = await fetch(`${API_URL}/api/boms/`, { headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) throw new Error("Failed to fetch BOMs");
     const result: ApiResponse<BOM[]> = await response.json();
     return result.data;
 };
 const createBOM = async (bomData: BOMCreate, token: string): Promise<BOM> => {
-    const response = await fetch(`${API_URL}/boms/`, {
+    const response = await fetch(`${API_URL}/api/boms/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(bomData),
@@ -68,7 +66,7 @@ const createBOM = async (bomData: BOMCreate, token: string): Promise<BOM> => {
     return result.data;
 };
 const updateBOM = async ({ bomId, bomData, token }: { bomId: string; bomData: BOMCreate; token: string }): Promise<BOM> => {
-    const response = await fetch(`${API_URL}/boms/${bomId}`, {
+    const response = await fetch(`${API_URL}/api/boms/${bomId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(bomData),
@@ -81,7 +79,7 @@ const updateBOM = async ({ bomId, bomData, token }: { bomId: string; bomData: BO
     return result.data;
 };
 const deleteBOM = async ({ bomId, token }: { bomId: string, token: string }): Promise<void> => {
-    const response = await fetch(`${API_URL}/boms/${bomId}`, {
+    const response = await fetch(`${API_URL}/api/boms/${bomId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
     });
@@ -90,7 +88,7 @@ const deleteBOM = async ({ bomId, token }: { bomId: string, token: string }): Pr
 
 // --- Dialog Components ---
 const CreateEditBOMDialog = ({ bom, onClose }: { bom: BOM | null; onClose: () => void }) => {
-    const { idToken } = useAuth();
+    const { token } = useAuth();
     const queryClient = useQueryClient();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(bom?.finishedProductId || null);
     const [components, setComponents] = useState<BOMComponent[]>(bom?.components || []);
@@ -102,8 +100,8 @@ const CreateEditBOMDialog = ({ bom, onClose }: { bom: BOM | null; onClose: () =>
 
     const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[], Error>({
         queryKey: ["products"],
-        queryFn: () => getProducts(idToken!),
-        enabled: !!idToken,
+        queryFn: () => getProducts(token!),
+        enabled: !!token,
     });
 
     const mutationOptions = {
@@ -116,12 +114,12 @@ const CreateEditBOMDialog = ({ bom, onClose }: { bom: BOM | null; onClose: () =>
     };
 
     const { mutate: createBomMutation, isPending: isCreating } = useMutation({
-        mutationFn: (newBom: BOMCreate) => createBOM(newBom, idToken!),
+        mutationFn: (newBom: BOMCreate) => createBOM(newBom, token!),
         ...mutationOptions
     });
 
     const { mutate: updateBomMutation, isPending: isUpdating } = useMutation({
-        mutationFn: (vars: { bomId: string, bomData: BOMCreate }) => updateBOM({ ...vars, token: idToken! }),
+        mutationFn: (vars: { bomId: string, bomData: BOMCreate }) => updateBOM({ ...vars, token: token! }),
         ...mutationOptions
     });
 
@@ -281,14 +279,14 @@ const BOM = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedBOM, setSelectedBOM] = useState<BOM | null>(null);
-  const { idToken } = useAuth();
+  const { token } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: products = [] } = useQuery<Product[], Error>({ queryKey: ["products"], queryFn: () => getProducts(idToken!), enabled: !!idToken });
-  const { data: boms = [], isLoading, error } = useQuery<BOM[], Error>({ queryKey: ["boms"], queryFn: () => getBOMs(idToken!), enabled: !!idToken });
+  const { data: products = [] } = useQuery<Product[], Error>({ queryKey: ["products"], queryFn: () => getProducts(token!), enabled: !!token });
+  const { data: boms = [], isLoading, error } = useQuery<BOM[], Error>({ queryKey: ["boms"], queryFn: () => getBOMs(token!), enabled: !!token });
 
   const { mutate: deleteBomMutation } = useMutation({
-      mutationFn: (bomId: string) => deleteBOM({ bomId, token: idToken! }),
+      mutationFn: (bomId: string) => deleteBOM({ bomId, token: token! }),
       onSuccess: () => {
           toast.success("BOM deleted successfully!");
           queryClient.invalidateQueries({ queryKey: ["boms"] });

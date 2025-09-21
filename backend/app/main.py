@@ -72,12 +72,12 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
-app.include_router(product_routes.router)
-app.include_router(bom_route.router)
-app.include_router(manufacture_router)
-app.include_router(ledger_router)
-app.include_router(websocket_router)
-app.include_router(inventory_router)
+app.include_router(product_routes.router, prefix="/api")
+app.include_router(bom_route.router, prefix="/api")
+app.include_router(manufacture_router, prefix="/api")
+app.include_router(ledger_router, prefix="/api")
+app.include_router(websocket_router, prefix="/api")
+app.include_router(inventory_router, prefix="/api")
 
 @app.get("/", tags=["Health Check"])
 def health_check():
@@ -86,9 +86,9 @@ def health_check():
     return {"status": "healthy", "message": "Welcome to the Manufacturing Management API!"}
 
 #include the routes
-app.include_router(work_order_router)
-app.include_router(work_centre_router)
-app.include_router(analytics_router)
+app.include_router(work_order_router, prefix="/api")
+app.include_router(work_centre_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 
 if __name__ == "__main__":

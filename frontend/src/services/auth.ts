@@ -55,7 +55,19 @@ class AuthService {
     }
 
     const result = await response.json();
+    
+    // Check if the response has the expected structure
+    // Backend returns "status": "success" not "success": true
+    if (result.status !== "success" || !result.data) {
+      throw new Error(result.message || 'Login failed - invalid response');
+    }
+    
     const authData = result.data as AuthResponse;
+
+    // Validate that we have the required fields
+    if (!authData.access_token) {
+      throw new Error('No access token received');
+    }
 
     // Store token and user data
     this.token = authData.access_token;
@@ -81,6 +93,12 @@ class AuthService {
     }
 
     const result = await response.json();
+    
+    // Check if registration was successful
+    if (result.status !== "success") {
+      throw new Error(result.message || 'Registration failed');
+    }
+    
     return result;
   }
 

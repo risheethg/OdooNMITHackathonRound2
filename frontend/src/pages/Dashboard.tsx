@@ -19,12 +19,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Plus, Search, Filter, Trash2, CheckCircle } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAuth } from "@/Root";
 
 // --- SELF-CONTAINED MOCKS & SERVICES ---
-
-const useAuth = () => {
-  return { idToken: "mock-jwt-token-for-development" };
-};
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -66,7 +63,7 @@ interface ApiResponse<T> {
 // --- API SERVICE FUNCTIONS ---
 
 export const getManufacturingOrders = async (status: string, token: string): Promise<ManufacturingOrder[]> => {
-  let url = `${API_URL}/manufacturing-orders/`;
+  let url = `${API_URL}/api/manufacturing-orders/`;
   if (status && status !== 'all') {
     url += `?status=${status}`;
   }
@@ -80,7 +77,7 @@ export const getManufacturingOrders = async (status: string, token: string): Pro
 };
 
 export const deleteManufacturingOrder = async (mo_id: string, token: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/manufacturing-orders/${mo_id}`, {
+  const response = await fetch(`${API_URL}/api/manufacturing-orders/${mo_id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -91,7 +88,7 @@ export const deleteManufacturingOrder = async (mo_id: string, token: string): Pr
 };
 
 export const completeManufacturingOrder = async (mo_id: string, token: string): Promise<any> => {
-    const response = await fetch(`${API_URL}/manufacturing-orders/${mo_id}/complete`, {
+    const response = await fetch(`${API_URL}/api/manufacturing-orders/${mo_id}/complete`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
     });
@@ -104,7 +101,7 @@ export const completeManufacturingOrder = async (mo_id: string, token: string): 
 };
 
 export const createManufacturingOrder = async (orderData: ManufacturingOrderCreate, token: string): Promise<ManufacturingOrder> => {
-  const response = await fetch(`${API_URL}/manufacturing-orders/`, {
+  const response = await fetch(`${API_URL}/api/manufacturing-orders/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -121,7 +118,7 @@ export const createManufacturingOrder = async (orderData: ManufacturingOrderCrea
 };
 
 export const getProducts = async (token: string): Promise<Product[]> => {
-  const response = await fetch(`${API_URL}/products/`, { headers: { Authorization: `Bearer ${token}` } });
+  const response = await fetch(`${API_URL}/api/products/`, { headers: { Authorization: `Bearer ${token}` } });
   if (!response.ok) {
     throw new Error('Failed to fetch products');
   }
@@ -130,7 +127,7 @@ export const getProducts = async (token: string): Promise<Product[]> => {
 }
 
 export const createProduct = async (productData: ProductCreate, token: string): Promise<Product> => {
-  const response = await fetch(`${API_URL}/products/`, {
+  const response = await fetch(`${API_URL}/api/products/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -162,11 +159,11 @@ const KPICard = ({ title, value }) => (
 
 
 const OrdersTable = ({ statusFilter, searchTerm, onDeleteOrder, onCompleteOrder, products }) => {
-    const { idToken } = useAuth();
+    const { token } = useAuth();
     const { data: orders = [], isLoading, error } = useQuery<ManufacturingOrder[], Error>({
         queryKey: ['manufacturingOrders', statusFilter],
-        queryFn: () => getManufacturingOrders(statusFilter, idToken!),
-        enabled: !!idToken,
+        queryFn: () => getManufacturingOrders(statusFilter, token!),
+        enabled: !!token,
     });
     
     const productMap = useMemo(() => {
@@ -261,19 +258,19 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isCreateProductModalOpen, setCreateProductModalOpen] = useState(false);
-  const { idToken } = useAuth();
+  const { token } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: allOrders = [], isLoading: isLoadingKpis } = useQuery<ManufacturingOrder[], Error>({
     queryKey: ['manufacturingOrders', 'all-for-kpi'],
-    queryFn: () => getManufacturingOrders('all', idToken!),
-    enabled: !!idToken,
+    queryFn: () => getManufacturingOrders('all', token!),
+    enabled: !!token,
   });
 
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[], Error>({
     queryKey: ['products'],
-    queryFn: () => getProducts(idToken!),
-    enabled: !!idToken,
+    queryFn: () => getProducts(token!),
+    enabled: !!token,
   });
 
   const kpiData = useMemo(() => {
@@ -294,7 +291,7 @@ const Dashboard = () => {
   }, [allOrders, isLoadingKpis]);
 
   const { mutate: deleteOrder } = useMutation({
-    mutationFn: (mo_id: string) => deleteManufacturingOrder(mo_id, idToken!),
+    mutationFn: (mo_id: string) => deleteManufacturingOrder(mo_id, token!),
     onSuccess: () => {
       toast.success("Order deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ['manufacturingOrders'] });
@@ -306,7 +303,7 @@ const Dashboard = () => {
   });
 
   const { mutate: completeOrder } = useMutation({
-    mutationFn: (mo_id: string) => completeManufacturingOrder(mo_id, idToken!),
+    mutationFn: (mo_id: string) => completeManufacturingOrder(mo_id, token!),
     onSuccess: () => {
       toast.success("Order marked as complete!");
       queryClient.invalidateQueries({ queryKey: ['manufacturingOrders'] });
@@ -318,7 +315,7 @@ const Dashboard = () => {
   });
 
   const { mutate: createOrder, isPending: isCreating } = useMutation<ManufacturingOrder, Error, ManufacturingOrderCreate>({
-    mutationFn: (orderData: ManufacturingOrderCreate) => createManufacturingOrder(orderData, idToken!),
+    mutationFn: (orderData: ManufacturingOrderCreate) => createManufacturingOrder(orderData, token!),
     onSuccess: (data) => {
       toast.success(`Order ${data.mo_id} created successfully!`);
       queryClient.invalidateQueries({ queryKey: ['manufacturingOrders'] });
@@ -348,7 +345,7 @@ const Dashboard = () => {
   }
 
   const { mutate: createNewProduct, isPending: isCreatingProduct } = useMutation({
-    mutationFn: (productData: ProductCreate) => createProduct(productData, idToken!),
+    mutationFn: (productData: ProductCreate) => createProduct(productData, token!),
     onSuccess: () => {
       toast.success("Product created successfully!");
       queryClient.invalidateQueries({ queryKey: ['products'] });
