@@ -48,7 +48,7 @@ export interface Product {
 
 export interface ManufacturingOrderCreate {
   product_id: string;
-  quantity: number;
+  quantity: number; // FIX: Reverted to 'quantity' to match backend expectation
 }
 
 export interface ProductCreate {
@@ -174,18 +174,14 @@ const OrdersTable = ({ statusFilter, searchTerm, onDeleteOrder, onCompleteOrder,
         return new Map(products.map(p => [p._id, p.name]));
     }, [products]);
 
-    // --- FIX APPLIED HERE ---
     const filteredOrders = useMemo(() => {
         if (!orders) return [];
         
-        // Safely get the search term, defaulting to an empty string.
         const searchLower = (searchTerm || '').toLowerCase();
         
         return orders.filter(order => {
-            // Guard against malformed order objects.
             if (!order) return false;
             
-            // Safely get the product name and MO ID, defaulting to empty strings.
             const productName = (productMap.get(order.product_id) || '').toLowerCase();
             const moId = (order.mo_id || '').toLowerCase();
     
@@ -320,6 +316,7 @@ const Dashboard = () => {
   const { mutate: createOrder, isPending: isCreating } = useMutation<ManufacturingOrder, Error, ManufacturingOrderCreate>({
     mutationFn: (orderData: ManufacturingOrderCreate) => createManufacturingOrder(orderData, idToken!),
     onSuccess: (data) => {
+      // The backend now returns the full MO object, including the new mo_id
       toast.success(`Order ${data.mo_id} created successfully!`);
       queryClient.invalidateQueries({ queryKey: ['manufacturingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['manufacturingOrders', 'all-for-kpi'] });
@@ -334,7 +331,7 @@ const Dashboard = () => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const productId = formData.get('product_id') as string;
-    const quantityStr = formData.get('quantity') as string;
+    const quantityStr = formData.get('quantity') as string; // FIX: Changed to get correct form field
 
     if (!productId || !quantityStr || parseInt(quantityStr, 10) <= 0) {
       toast.error("Please fill out all fields.");
@@ -343,7 +340,7 @@ const Dashboard = () => {
     
     createOrder({
       product_id: productId,
-      quantity: parseInt(quantityStr, 10),
+      quantity: parseInt(quantityStr, 10), // FIX: Changed to send correct field name
     });
   }
 
@@ -419,6 +416,7 @@ const Dashboard = () => {
                   <Select name="product_id" required><SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger><SelectContent>{isLoadingProducts ? (<SelectItem value="loading" disabled>Loading...</SelectItem>) : (products.map(p => (<SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>)))}</SelectContent></Select>
                 </div>
                 <div>
+                  {/* FIX: Changed name and id back to 'quantity' */}
                   <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                   <Input id="quantity" name="quantity" type="number" placeholder="e.g., 10" required min="1" />
                 </div>

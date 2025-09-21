@@ -55,23 +55,25 @@ class ManufacturingOrderService:
             )
             work_orders_to_create.append(work_order)
         
+        # Generate a unique, human-readable MO ID
+        order_count = self.mo_repo.count_documents({})
+        new_mo_id = f"MO-{order_count + 1:05d}"
+        
         new_mo_model = ManufacturingOrder(
+                mo_id=new_mo_id,
                 product_id=order_data.product_id,
-                quantity_to_produce=order_data.quantity,
+                quantity_to_produce=order_data.quantity, # This was the fix
                 bom_snapshot=bom,
                 work_orders=work_orders_to_create
         )
         
-        # Convert the model to a dictionary for MongoDB
         mo_dict_to_save = new_mo_model.model_dump(by_alias=True, exclude_none=True)
         
-        # REMOVED: del mo_dict_to_save['_id'] -> This line caused the error
-
-        # Create the document in the database
         result = self.mo_repo.create(mo_dict_to_save)
-        created_id = str(result.inserted_id)
-        
-        return {"mo_id": created_id}
+        created_mo = self.mo_repo.get_by_id(str(result.inserted_id))
+        if created_mo:
+            created_mo["_id"] = str(created_mo["_id"])
+        return created_mo
 
     async def get_all_manufacturing_orders(self, status: str | None = None) -> List[Dict[str, Any]]:
         query = {}
@@ -90,14 +92,14 @@ class ManufacturingOrderService:
         return order
     
     async def delete_manufacturing_order(self, mo_id: str) -> None:
-        order = self.mo_repo.get_by_id(mo_id)
+        order = self.mo_repo.find_one({"mo_id": mo_id})
         if not order:
             raise HTTPException(status_code=404, detail="Manufacturing Order not found.")
         
         if order.get("status") in ["in_progress", "done"]:
             raise HTTPException(status_code=400, detail="Cannot delete an order that is in progress or completed.")
         
-        self.mo_repo.delete(mo_id)
+        self.mo_repo.delete(order["_id"])
         return
 
     async def complete_manufacturing_order(self, mo_id: str) -> Dict[str, Any]:

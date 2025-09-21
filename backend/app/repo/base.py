@@ -121,3 +121,15 @@ class BaseRepository:
             DeleteResult: The result from the delete operation.
         """
         return self.collection.delete_one({"_id": ObjectId(item_id)})
+
+    def count_documents(self, query: Dict[str, Any] = {}) -> int:
+        """
+        Counts the number of documents matching the query.
+
+        Args:
+            query (Dict[str, Any], optional): A MongoDB query filter. Defaults to {}.
+
+        Returns:
+            int: The number of documents.
+        """
+        return self.collection.count_documents(query)

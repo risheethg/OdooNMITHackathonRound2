@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from pymongo.database import Database
 import inspect
 import os
+from fastapi.encoders import jsonable_encoder
 import logging
 
 from app.models.manufacture import ManufacturingOrderCreate
@@ -30,7 +31,7 @@ async def create_order(request: Request, order_data: ManufacturingOrderCreate, s
         logs.define_logger(level=logging.INFO, message="Manufacturing order created successfully.", loggName=log_info, pid=os.getpid(), request=request, response=created_data)
         
         final_response = response.success(
-            data=created_data,
+            data=jsonable_encoder(created_data),
             message="Manufacturing Order created successfully",
             status_code=201
         )

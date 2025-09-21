@@ -135,8 +135,8 @@ class LoggerConfig:
         try:
            
             log_parts = {
-                "IP": f"{request.client.host}" if request else None,
-                "URL": f"{request.method} {request.url}" if request else None,
+                "IP": f"{request.client.host}" if isinstance(request, Request) and request.client else None,
+                "URL": f"{request.method} {request.url}" if isinstance(request, Request) else None,
                 "MESSAGE": message,
                 "PID": str(pid) if pid is not None else None,
                 "FILE": f"{loggName[1]}:{loggName[3]}" if loggName else None,
