@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Query, Request, HTTPException, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pymongo.database import Database
 import inspect
 import os
 import logging
+import io
 
 from app.models.manufacture import ManufacturingOrderCreate
 from app.service.manufacture_service import ManufacturingOrderService
@@ -12,6 +13,7 @@ from app.core.logger import logs
 from app.utils.response_model import response
 from app.core.security import RoleChecker
 from app.models.user_model import UserRole
+from app.service.export_service import ExportService
 
 router = APIRouter(
     prefix="/manufacturing-orders",
@@ -21,6 +23,9 @@ router = APIRouter(
 
 def get_mo_service(db: Database = Depends(get_db)) -> ManufacturingOrderService:
     return ManufacturingOrderService(db)
+
+def get_export_service(db: Database = Depends(get_db)) -> ExportService:
+    return ExportService(db)
 
 @router.post("/")
 async def create_order(request: Request, order_data: ManufacturingOrderCreate, service: ManufacturingOrderService = Depends(get_mo_service)):
@@ -138,4 +143,24 @@ async def complete_manufacturing_order(request: Request, mo_id: str, service: Ma
     
     except Exception as e:
         logs.define_logger(level=logging.ERROR, message=f"Unexpected error completing manufacturing order: {e}", loggName=log_info, pid=os.getpid(), request=request)
+        return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
+
+@router.get("/{mo_id}/export", summary="Download completed Manufacturing Order (CSV/PDF)")
+async def export_manufacturing_order(
+    request: Request,
+    mo_id: str,
+    fmt: str = Query("csv", description="Export format: 'csv' or 'pdf'"),
+    service: ExportService = Depends(get_export_service),
+):
+    log_info = inspect.stack()[0]
+    logs.define_logger(level=logging.INFO, message=f"Exporting MO {mo_id} as {fmt}", loggName=log_info, pid=os.getpid(), request=request)
+    try:
+        content, filename, mime = await service.export(mo_id, fmt.lower())
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
+        return StreamingResponse(io.BytesIO(content), media_type=mime, headers=headers)
+    except HTTPException as he:
+        logs.define_logger(level=logging.ERROR, message=f"Export failed: {he.detail}", loggName=log_info, pid=os.getpid(), request=request)
+        return JSONResponse(status_code=he.status_code, content=response.failure(message=he.detail, status_code=he.status_code))
+    except Exception as e:
+        logs.define_logger(level=logging.ERROR, message=f"Unexpected error exporting MO: {e}", loggName=log_info, pid=os.getpid(), request=request)
         return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
