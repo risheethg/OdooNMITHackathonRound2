@@ -6,8 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.db_connection import DBConnection
-# from app.core.firebase_app import initialize_firebase
-
+# from app.core.firebase_app import initialize_firebase  # Firebase disabled for now
 
 from app.routes.work_order_route import router as work_order_router
 from app.routes.work_centre_route import router as work_centre_router
@@ -17,7 +16,7 @@ from app.routes.websocket_routes import router as websocket_router
 from app.routes.ledger_routes import router as ledger_router
 from app.routes.analytics_routes import router as analytics_router
 from app.routes.inventory_route import router as inventory_router
-from app.core.logger import logs 
+from app.core.logger import logs
 from app.service.automation_service import AutomationService
 from app.service.polling_service import polling_service
 import inspect
@@ -27,24 +26,24 @@ import inspect
 async def lifespan(app: FastAPI):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Application startup...", loggName=log_info, pid=os.getpid())
-    
-    # initialize_firebase()  # Firebase still initialized here; remove if no external auth
-    
+
+    # initialize_firebase()  # Firebase initialization skipped for now
+
     db_connection = DBConnection()
     app.state.db_connection = db_connection
     logs.define_logger(level=logging.INFO, message="MongoDB connection established.", loggName=log_info, pid=os.getpid())
-    
+
     # Automation polling setup
     db = db_connection.get_database()
     automation_service = AutomationService(db)
     polling_service.register_task(automation_service.polling_task)
     await polling_service.start_polling()
-    
+
     yield
-    
+
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Application shutdown...", loggName=log_info, pid=os.getpid())
-    
+
     await polling_service.stop_polling()
     if DBConnection._client:
         DBConnection._client.close()
@@ -70,7 +69,6 @@ app.add_middleware(
 )
 
 # Include routes without role-based dependencies on app level
-
 app.include_router(product_routes.router)
 app.include_router(bom_route.router)
 app.include_router(manufacture_router)
@@ -80,6 +78,7 @@ app.include_router(inventory_router)
 app.include_router(work_order_router)
 app.include_router(work_centre_router)
 app.include_router(analytics_router)
+
 
 @app.get("/", tags=["Health Check"])
 def health_check():

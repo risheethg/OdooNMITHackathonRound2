@@ -1523,3 +1523,17 @@ mo_id
 2025-09-21 09:47:57,997 - APP-BE - INFO - MESSAGE: WO 68cf7c3c171b40910b235e59 completed. Automatically starting next WO 68cf7c3c171b40910b235e5a. - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/service/work_order_service.py:update_work_order_status
 2025-09-21 09:48:58,024 - APP-BE - INFO - MESSAGE: Updating WO 68cf7c3c171b40910b235e5a to status 'done' - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/service/work_order_service.py:update_work_order_status
 2025-09-21 09:48:58,032 - APP-BE - INFO - MESSAGE: All WOs for MO 68cf7c3c171b40910b235e58 are done. Triggering MO completion. - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/service/work_order_service.py:update_work_order_status
+2025-09-21 10:13:45,159 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 9198 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:13:45,162 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 9198 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:13:45,579 - APP-BE - INFO - MESSAGE: Application startup... - PID: 10793 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:13:45,579 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 10793 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:18:35,897 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 10793 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:18:35,899 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 10793 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:18:36,257 - APP-BE - INFO - MESSAGE: Application startup... - PID: 11008 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:18:36,258 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 11008 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:22:42,110 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 11008 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:22:42,185 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 11008 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:22:42,625 - APP-BE - INFO - MESSAGE: Application startup... - PID: 11167 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:22:42,625 - APP-BE - INFO - MESSAGE: MongoDB connection established. - PID: 11167 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:23:16,419 - APP-BE - INFO - MESSAGE: Application shutdown... - PID: 11167 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
+2025-09-21 10:23:16,424 - APP-BE - INFO - MESSAGE: MongoDB connection closed. - PID: 11167 - FILE: /Users/cherishmabodapati/Documents/Odoo/OdooNMITHackathonRound2/backend/app/main.py:lifespan
