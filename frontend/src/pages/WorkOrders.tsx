@@ -40,7 +40,9 @@ export const getWorkOrders = async (token: string): Promise<WorkOrder[]> => {
   });
   if (!response.ok) throw new Error('Failed to fetch work orders');
   const result = await response.json();
-  return result.data;
+  console.log('Work Orders API Response:', result);
+  // Work orders route returns data directly (not wrapped)
+  return Array.isArray(result) ? result : result.data || [];
 };
 
 export const getWorkCenters = async (token: string): Promise<WorkCenter[]> => {
@@ -49,7 +51,9 @@ export const getWorkCenters = async (token: string): Promise<WorkCenter[]> => {
   });
   if (!response.ok) throw new Error('Failed to fetch work centers');
   const result = await response.json();
-  return result.data;
+  console.log('Work Centers API Response:', result);
+  // Work centres route returns wrapped data: { data: [...] }
+  return result.data || [];
 };
 
 export const updateWorkOrderStatus = async ({ wo_id, status, token }: { wo_id: string; status: WorkOrder['status']; token: string }): Promise<any> => {
@@ -75,6 +79,11 @@ const WorkOrders = () => {
   const { user } = useAuth();
   const token = localStorage.getItem('access_token');
 
+  // Early return if no token
+  if (!token) {
+    return <div>Please log in to view work orders.</div>;
+  }
+
   const { data: workOrders = [], isLoading, error } = useQuery<WorkOrder[], Error>({
     queryKey: ['workOrders'],
     queryFn: () => getWorkOrders(token!),
@@ -86,6 +95,9 @@ const WorkOrders = () => {
     queryFn: () => getWorkCenters(token!),
     enabled: !!token,
   });
+
+  console.log('Work Orders State:', { workOrders, isLoading, error, token: !!token });
+  console.log('Work Centers State:', { workCenters });
 
   const workCenterMap = useMemo(() => new Map(workCenters.map(wc => [wc._id, wc.name])), [workCenters]);
 
@@ -102,12 +114,16 @@ const WorkOrders = () => {
   });
 
   const filteredWorkOrders = useMemo(() => {
+    if (!workOrders || !Array.isArray(workOrders)) return [];
+    
     return workOrders.filter(order => {
+      if (!order) return false;
+      
       const searchLower = searchTerm.toLowerCase();
-      const statusMatch = statusFilter === 'all' || order.status.toLowerCase().replace(/ /g, '-') === statusFilter;
+      const statusMatch = statusFilter === 'all' || (order.status || '').toLowerCase().replace(/ /g, '-') === statusFilter;
       const searchMatch =
-        order.name.toLowerCase().includes(searchLower) ||
-        order.manufacturingOrderId.toLowerCase().includes(searchLower) ||
+        (order.name || '').toLowerCase().includes(searchLower) ||
+        (order.manufacturingOrderId || '').toLowerCase().includes(searchLower) ||
         (workCenterMap.get(order.workCenterId || '') || '').toLowerCase().includes(searchLower);
       return statusMatch && searchMatch;
     });
@@ -127,6 +143,8 @@ const WorkOrders = () => {
 
   if (isLoading) return <div className="text-center p-8">Loading work orders...</div>;
   if (error) return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
+  
+  console.log('Filtered Work Orders:', filteredWorkOrders);
 
   return (
     <div className="space-y-6">
