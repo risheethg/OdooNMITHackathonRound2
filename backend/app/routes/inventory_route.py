@@ -10,13 +10,16 @@ from app.service.inventory_service import InventoryService
 from pymongo.database import Database
 from datetime import datetime
 
+
 router = APIRouter(
     prefix="/inventory",
     tags=["Inventory"]
 )
 
+
 def get_inventory_service(db: Database = Depends(get_db)) -> InventoryService:
     return InventoryService(db)
+
 
 @router.get("/availability", summary="Get Current Inventory Stock Availability")
 async def get_current_inventory_availability(request: Request, inventory_service: InventoryService = Depends(get_inventory_service)):

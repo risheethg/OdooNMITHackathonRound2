@@ -1,16 +1,18 @@
-# app/users/user_router.py
-
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from app.service.user_service import UserService, get_user_service
 from app.models.user_model import CreateUserSchema
-from app.core.security import RoleChecker
-from app.models.user_model import UserRole
+
+# Removed auth imports:
+# from app.core.security import RoleChecker
+# from app.models.user_model import UserRole
+
 
 router = APIRouter(
     prefix="/users",
     tags=["Users"]
 )
+
 
 @router.post(
     "/",
@@ -27,10 +29,12 @@ def create_user(
     result = service.create_user(data)
     return JSONResponse(status_code=result["status_code"], content=result)
 
+
 @router.get(
     "/{item_id}",
-    summary="Get User by ID (Admin Only)",
-    dependencies=[Depends(RoleChecker([UserRole.ADMIN]))]
+    summary="Get User by ID"
+    # Removed role-based dependency here
+    # dependencies=[Depends(RoleChecker([UserRole.ADMIN]))]
 )
 def get_user(
     item_id: str,

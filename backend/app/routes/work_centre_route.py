@@ -1,17 +1,21 @@
-# app/work_centres/work_centre_router.py
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from app.service.work_centre_service import WorkCentreService, get_work_centre_service
 from app.models.work_centre_model import CreateWorkCentreSchema
 from app.utils.response_model import response
-from app.core.security import RoleChecker
-from app.models.user_model import UserRole
+
+# Removed auth imports:
+# from app.core.security import RoleChecker
+# from app.models.user_model import UserRole
+
 
 router = APIRouter(
     prefix="/work-centres",
     tags=["Work Centres"],
-    dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
+    # Removed role-based dependencies:
+    # dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
 )
+
 
 @router.post("/")
 def create_work_centre(
@@ -26,6 +30,7 @@ def create_work_centre(
         return response.success(data=work_centre, message="Work centre created successfully.", status_code=201)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get("/")
 def get_all_work_centres(

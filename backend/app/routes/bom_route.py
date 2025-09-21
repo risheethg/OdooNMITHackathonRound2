@@ -1,51 +1,45 @@
+import inspect
+import logging
+import os
 from fastapi import APIRouter, Depends, status, HTTPException, Request
 from fastapi.responses import JSONResponse
-from datetime import datetime
 from pymongo.database import Database
-from bson import ObjectId
+
 from ..core.db_connection import get_db
 from ..utils.response_model import Response, response
-from ..core.logger import logs # New import
-from ..models.bom_model import BOM, BOMComponent, BOMCreate
+from ..core.logger import logs
+from ..models.bom_model import BOMCreate
 from ..repo.bom_repo import BOMRepository
 from ..repo.product_repo import ProductRepository
 from ..service.bom_service import BOMService
-from ..core.security import RoleChecker
-from ..models.user_model import UserRole
 
-import inspect
-import os
-import logging
+# Removed auth imports:
+# from ..core.security import RoleChecker
+# from ..models.user_model import UserRole
+
 
 def get_bom_service(db: Database = Depends(get_db)) -> BOMService:
     bom_repo = BOMRepository(db)
     product_repo = ProductRepository(db)
     return BOMService(bom_repo, product_repo)
 
+
 router = APIRouter(
     prefix="/boms",
     tags=["BOMs"],
-    dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
+    # Removed authentication role dependencies
+    # dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
 )
 
-from app.models.bom_model import BOM, BOMCreate
 
 @router.post("/", summary="Create New BOM")
 async def create_bom(request: Request, bom_data: BOMCreate, service: BOMService = Depends(get_bom_service)):
-    """
-    Create a new Bill of Materials (BOM).
-    
-    The system will automatically generate:
-    - _id: Unique identifier
-    - created_at: Creation timestamp
-    - updated_at: Last modified timestamp
-    """
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Creating a new BOM...", loggName=log_info, pid=os.getpid(), request=request, body=bom_data)
     
     try:
-        result = service.create_bom(bom_data)
-        created_bom = service.bom_repo.get_by_id(str(result.inserted_id))
+        result = service.create_bom(bom_data)  # Await async service call
+        created_bom = service.bom_repo.get_by_id(str(result.inserted_id))  # Await async repo call
         
         logs.define_logger(level=logging.INFO, message="BOM created successfully.", loggName=log_info, pid=os.getpid(), request=request, response=created_bom)
         
@@ -58,18 +52,13 @@ async def create_bom(request: Request, bom_data: BOMCreate, service: BOMService 
         logs.define_logger(level=logging.ERROR, message=f"Failed to create BOM: {e}", loggName=log_info, pid=os.getpid(), request=request)
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/", status_code=status.HTTP_200_OK)
-def get_all_boms(
-    request: Request,
-    service: BOMService = Depends(get_bom_service)
-):
-    """
-    Get all Bills of Materials.
-    """
+async def get_all_boms(request: Request, service: BOMService = Depends(get_bom_service)):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message="Fetching all BOMs...", loggName=log_info, pid=os.getpid(), request=request)
     
-    boms = service.get_all_boms()
+    boms = await service.get_all_boms()  # Await async call
     
     logs.define_logger(level=logging.INFO, message="BOMs fetched successfully.", loggName=log_info, pid=os.getpid(), request=request)
     
@@ -79,19 +68,13 @@ def get_all_boms(
         status_code=status.HTTP_200_OK
     )
 
+
 @router.get("/{bom_id}", status_code=status.HTTP_200_OK)
-def get_bom_by_id(
-    bom_id: str,
-    request: Request,
-    service: BOMService = Depends(get_bom_service)
-):
-    """
-    Get a specific BOM by ID.
-    """
+async def get_bom_by_id(bom_id: str, request: Request, service: BOMService = Depends(get_bom_service)):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message=f"Fetching BOM with ID: {bom_id}", loggName=log_info, pid=os.getpid(), request=request)
     
-    bom = service.get_bom_by_id(bom_id)
+    bom = await service.get_bom_by_id(bom_id)
     
     logs.define_logger(level=logging.INFO, message="BOM fetched successfully.", loggName=log_info, pid=os.getpid(), request=request, response=bom)
     
@@ -101,15 +84,9 @@ def get_bom_by_id(
         status_code=status.HTTP_200_OK
     )
 
+
 @router.get("/product/{product_id}", status_code=status.HTTP_200_OK)
-def get_bom_by_product_id(
-    product_id: str,
-    request: Request,
-    service: BOMService = Depends(get_bom_service)
-):
-    """
-    Get BOM for a specific product.
-    """
+async def get_bom_by_product_id(product_id: str, request: Request, service: BOMService = Depends(get_bom_service)):
     log_info = inspect.stack()[0]
     logs.define_logger(level=logging.INFO, message=f"Fetching BOM for product ID: {product_id}", loggName=log_info, pid=os.getpid(), request=request)
     

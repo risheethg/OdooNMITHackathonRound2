@@ -11,21 +11,27 @@ from app.service.manufacture_service import ManufacturingOrderService
 from app.core.db_connection import get_db
 from app.core.logger import logs
 from app.utils.response_model import response
-from app.core.security import RoleChecker
-from app.models.user_model import UserRole
 from app.service.export_service import ExportService
+
+# Removed auth import:
+# from app.core.security import RoleChecker
+# from app.models.user_model import UserRole
 
 router = APIRouter(
     prefix="/manufacturing-orders",
     tags=["Manufacturing Orders"],
-    dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
+    # Removed role-based dependency
+    # dependencies=[Depends(RoleChecker([UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
 )
+
 
 def get_mo_service(db: Database = Depends(get_db)) -> ManufacturingOrderService:
     return ManufacturingOrderService(db)
 
+
 def get_export_service(db: Database = Depends(get_db)) -> ExportService:
     return ExportService(db)
+
 
 @router.post("/")
 async def create_order(request: Request, order_data: ManufacturingOrderCreate, service: ManufacturingOrderService = Depends(get_mo_service)):
@@ -34,7 +40,7 @@ async def create_order(request: Request, order_data: ManufacturingOrderCreate, s
     
     try:
         created_data = await service.create_manufacturing_order(order_data)
-        
+
         logs.define_logger(level=logging.INFO, message="Manufacturing order created successfully.", loggName=log_info, pid=os.getpid(), request=request, response=created_data)
         
         final_response = response.success(
@@ -51,6 +57,7 @@ async def create_order(request: Request, order_data: ManufacturingOrderCreate, s
     except Exception as e:
         logs.define_logger(level=logging.ERROR, message=f"Unexpected error creating manufacturing order: {e}", loggName=log_info, pid=os.getpid(), request=request)
         return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
+
 
 @router.get("/")
 async def get_all_orders(request: Request, status: str | None = Query(None), service: ManufacturingOrderService = Depends(get_mo_service)):
@@ -71,6 +78,7 @@ async def get_all_orders(request: Request, status: str | None = Query(None), ser
     except Exception as e:
         logs.define_logger(level=logging.ERROR, message=f"Unexpected error fetching manufacturing orders: {e}", loggName=log_info, pid=os.getpid(), request=request)
         return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
+
 
 @router.get("/{mo_id}")
 async def get_order_by_id(request: Request, mo_id: str, service: ManufacturingOrderService = Depends(get_mo_service)):
@@ -96,6 +104,7 @@ async def get_order_by_id(request: Request, mo_id: str, service: ManufacturingOr
         logs.define_logger(level=logging.ERROR, message=f"Unexpected error fetching manufacturing order: {e}", loggName=log_info, pid=os.getpid(), request=request)
         return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
 
+
 @router.delete("/{mo_id}")
 async def delete_order(request: Request, mo_id: str, service: ManufacturingOrderService = Depends(get_mo_service)):
     log_info = inspect.stack()[0]
@@ -116,6 +125,7 @@ async def delete_order(request: Request, mo_id: str, service: ManufacturingOrder
         logs.define_logger(level=logging.ERROR, message=f"Unexpected error deleting manufacturing order: {e}", loggName=log_info, pid=os.getpid(), request=request)
         return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
 
+
 @router.patch("/{mo_id}/complete")
 async def complete_manufacturing_order(request: Request, mo_id: str, service: ManufacturingOrderService = Depends(get_mo_service)):
     """
@@ -135,7 +145,6 @@ async def complete_manufacturing_order(request: Request, mo_id: str, service: Ma
             message="Manufacturing Order completed successfully",
             status_code=200
         )
-
     
     except HTTPException as he:
         logs.define_logger(level=logging.ERROR, message=f"Failed to complete manufacturing order: {he.detail}", loggName=log_info, pid=os.getpid(), request=request)
@@ -144,6 +153,7 @@ async def complete_manufacturing_order(request: Request, mo_id: str, service: Ma
     except Exception as e:
         logs.define_logger(level=logging.ERROR, message=f"Unexpected error completing manufacturing order: {e}", loggName=log_info, pid=os.getpid(), request=request)
         return JSONResponse(status_code=500, content=response.failure(message="An unexpected server error occurred.", status_code=500))
+
 
 @router.get("/{mo_id}/export", summary="Download completed Manufacturing Order (CSV/PDF)")
 async def export_manufacturing_order(

@@ -1,5 +1,5 @@
 import inspect
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import JSONResponse
 import logging
 import os
@@ -7,19 +7,21 @@ from app.core.db_connection import get_db
 from app.core.logger import logs
 from app.service.ledger_service import StockLedgerService
 from app.utils.response_model import response
-from app.core.security import RoleChecker
-from app.models.user_model import UserRole
 from pymongo.database import Database
 from datetime import datetime
+
 
 router = APIRouter(
     prefix="/stock-ledger",
     tags=["Stock Ledger"],
-    dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.ADMIN]))]
+    # Removed auth role dependencies
+    # dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.ADMIN]))]
 )
 
+
 def get_stock_ledger_service(db: Database = Depends(get_db)) -> StockLedgerService:
-    return StockLedgerService(db) # Pass the actual Database instance here
+    return StockLedgerService(db)  # Pass the actual Database instance here
+
 
 def ensure_serializable(data):
     """
@@ -30,6 +32,7 @@ def ensure_serializable(data):
             if isinstance(val, datetime):
                 entry[key] = val.isoformat()
     return data
+
 
 @router.get("/", summary="Get Stock Ledger History")
 async def get_stock_ledger_history(request: Request, stock_ledger_service: StockLedgerService = Depends(get_stock_ledger_service)):

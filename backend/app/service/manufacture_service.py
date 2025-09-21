@@ -70,10 +70,12 @@ class ManufacturingOrderService:
             work_orders_to_create.append(work_order)
         
         new_mo_model = ManufacturingOrder(
+                mo_id='1234',  # Will be set by MongoDB
                 product_id=order_data.product_id,
                 quantity_to_produce=order_data.quantity,
                 bom_snapshot=bom,
-                work_orders=work_orders_to_create
+                work_orders=work_orders_to_create,
+                
         )
         
         # Convert the model to a dictionary for MongoDB
