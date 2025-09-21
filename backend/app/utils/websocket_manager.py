@@ -36,7 +36,7 @@ class ConnectionManager:
                 await connection.send_json(data)
             except RuntimeError:
                 # The client disconnected without a proper handshake. Clean up.
-                self.disconnect(client_id)
+                await self.disconnect(client_id)
 
 # Create a single, shared instance to be used across the application
 connection_manager = ConnectionManager()

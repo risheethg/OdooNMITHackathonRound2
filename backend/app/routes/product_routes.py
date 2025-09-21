@@ -6,6 +6,8 @@ from ..core.logger import logs
 from ..models.product_model import Product, ProductCreate
 from ..repo.product_repo import ProductRepository
 from ..service.product_service import ProductService
+from ..core.security import RoleChecker
+from ..models.user_model import UserRole
 import inspect
 import os
 import logging
@@ -19,7 +21,11 @@ router = APIRouter(
     tags=["Products"]
 )
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", 
+    status_code=status.HTTP_201_CREATED, 
+    dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.ADMIN]))]
+)
 def create_product(
     product: ProductCreate,  # Use ProductCreate instead of Product
     request: Request,
@@ -42,7 +48,11 @@ def create_product(
         status_code=status.HTTP_201_CREATED
     )
 
-@router.get("/", status_code=status.HTTP_200_OK)
+@router.get(
+    "/", 
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
+)
 def get_all_products(
     request: Request,
     service: ProductService = Depends(get_product_service)
@@ -63,7 +73,11 @@ def get_all_products(
         status_code=status.HTTP_200_OK
     )
 
-@router.get("/{product_id}", status_code=status.HTTP_200_OK)
+@router.get(
+    "/{product_id}", 
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RoleChecker([UserRole.INVENTORY_MANAGER, UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN]))]
+)
 def get_product_by_id(
     product_id: str,
     request: Request,

@@ -6,9 +6,13 @@ from ..repo.manufacture_repo import ManufacturingOrderRepository
 from ..repo.product_repo import ProductRepository
 from ..repo.bom_repo import BOMRepository
 from ..repo.ledger_repo import StockLedgerRepository
+from ..repo.work_centre_repo import WorkCentreRepository
+from ..repo.work_order_repo import WorkOrderRepository
 from ..models.manufacture import ManufacturingOrderCreate, ManufacturingOrder, WorkOrder, BillOfMaterials
 from ..models.ledger_model import StockLedgerEntryCreate
 from ..core.logger import logs
+from ..utils.websocket_manager import connection_manager
+from datetime import datetime, timezone
 from pymongo.database import Database
 
 class ManufacturingOrderService:
@@ -20,6 +24,8 @@ class ManufacturingOrderService:
         self.product_repo = ProductRepository(db)
         self.bom_repo = BOMRepository(db)
         self.stock_repo = StockLedgerRepository(db)
+        self.wc_repo = WorkCentreRepository(db)
+        self.wo_repo = WorkOrderRepository(db)
 
     async def create_manufacturing_order(self, order_data: ManufacturingOrderCreate) -> Dict[str, Any]:
         logs.define_logger(20, "Executing create_manufacturing_order service", loggName=inspect.stack()[0])
@@ -48,10 +54,18 @@ class ManufacturingOrderService:
 
         # Create work orders from BOM operations
         work_orders_to_create = []
-        for op in bom.operations:
+        for i, op in enumerate(bom.operations):
+            operation_name = op.get('name', op.get('operation_name', 'Unknown Operation'))
+            
+            # Find work center by operation name
+            work_center = self.wc_repo.find_one({"operation": operation_name})
+            if not work_center:
+                raise HTTPException(status_code=404, detail=f"Work Center for operation '{operation_name}' not found.")
+
             work_order = WorkOrder(
-                operation_name=op.get('name', op.get('operation_name', 'Unknown Operation')),
-                work_center_id=op.get('work_center_id', 'default_work_center')
+                operation_name=operation_name,
+                work_center_id=str(work_center["_id"]),
+                sequence=i
             )
             work_orders_to_create.append(work_order)
         
@@ -70,10 +84,51 @@ class ManufacturingOrderService:
         mo_dict_to_save = new_mo_model.model_dump(by_alias=True, exclude_none=True)
         
         result = self.mo_repo.create(mo_dict_to_save)
-        created_mo = self.mo_repo.get_by_id(str(result.inserted_id))
-        if created_mo:
-            created_mo["_id"] = str(created_mo["_id"])
-        return created_mo
+        created_id = str(result.inserted_id)
+
+        # --- AUTOMATION STEP 1: Create and immediately start the process ---
+
+        # Now create the corresponding documents in the 'work_orders' collection
+        first_wo_id = None
+        for wo_model in work_orders_to_create:
+            # The wo_model is a Pydantic model, convert it to a dict
+            wo_data = wo_model.model_dump(exclude_none=True)
+            wo_data['mo_id'] = created_id
+            wo_result = self.wo_repo.create(wo_data)
+            if wo_data.get("sequence") == 0:
+                first_wo_id = str(wo_result.inserted_id)
+
+        # Automatically set the MO and the first WO to 'in_progress'
+        if first_wo_id:
+            self.mo_repo.update(created_id, {"status": "in_progress"})
+            self.wo_repo.update(first_wo_id, {"status": "in_progress"})
+            logs.define_logger(20, f"Automatically started MO {created_id} and first WO {first_wo_id}", loggName=inspect.stack()[0])
+            # Broadcast MO + first WO started
+            ts = datetime.now(timezone.utc).isoformat()
+            await connection_manager.send_to_topic(
+                project_id=created_id,
+                topic="mo_status",
+                data={
+                    "event": "manufacturing_order_started",
+                    "mo_id": created_id,
+                    "status": "in_progress",
+                    "timestamp": ts,
+                },
+            )
+            await connection_manager.send_to_topic(
+                project_id=first_wo_id,
+                topic="wo_status",
+                data={
+                    "event": "work_order_auto_started",
+                    "mo_id": created_id,
+                    "work_order_id": first_wo_id,
+                    "previous_status": "pending",
+                    "status": "in_progress",
+                    "timestamp": ts,
+                },
+            )
+        
+        return {"mo_id": created_id}
 
     async def get_all_manufacturing_orders(self, status: str | None = None) -> List[Dict[str, Any]]:
         query = {}
@@ -159,5 +214,17 @@ class ManufacturingOrderService:
         self.mo_repo.update(order_internal_id, {"status": "done"})
         
         logs.define_logger(20, f"Manufacturing order {mo_id} completed successfully", loggName=inspect.stack()[0])
+        # Broadcast MO completion
+        ts = datetime.now(timezone.utc).isoformat()
+        await connection_manager.send_to_topic(
+            project_id=mo_id,
+            topic="mo_status",
+            data={
+                "event": "manufacturing_order_completed",
+                "mo_id": mo_id,
+                "status": "done",
+                "timestamp": ts,
+            },
+        )
         
         return {"message": "Manufacturing Order completed successfully", "mo_id": mo_id}

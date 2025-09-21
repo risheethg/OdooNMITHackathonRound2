@@ -1,52 +1,51 @@
-# app/work_orders/work_order_router.py
+# app/api/routes/wo_router.py
 
-from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, status, Body, Query
+from typing import Dict, Any, List
 
-from ..service.work_order_service import WorkOrderService, get_work_order_service
-from ..models.work_order_model import CreateWorkOrderSchema, UpdateWorkOrderStatusSchema
+from pymongo.database import Database
+from app.core.db_connection import get_db # Assuming a dependency to get the DB
+from app.service.work_order_service import WorkOrderService
+from app.models.work_order_model import WorkOrderUpdate, WorkOrderInDB
+from app.core.security import RoleChecker
+from app.models.user_model import UserRole
 
 router = APIRouter(
     prefix="/work-orders",
     tags=["Work Orders"]
 )
 
-@router.post("/")
-def create_work_order(
-    data: CreateWorkOrderSchema,
-    service: WorkOrderService = Depends(get_work_order_service)
-):
-    """
-    Create a new Work Order. The `workCenterId` in the payload must correspond
-    to a Work Centre that has been created beforehand.
-    """
-    result = service.create_work_order(data)
-    return JSONResponse(status_code=result["status_code"], content=result)
-
-# --- New Endpoint Added ---
-@router.get("/")
+@router.get(
+    "/",
+    summary="Get All Work Orders",
+    description="Retrieves a list of all work orders. Can be filtered by `mo_id` to see the sequence of subprocesses and their statuses for a specific manufacturing order.",
+    response_model=List[WorkOrderInDB],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RoleChecker([
+        UserRole.OPERATOR, UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN
+    ]))]
+)
 def get_all_work_orders(
-    service: WorkOrderService = Depends(get_work_order_service)
+    mo_id: str = Query(None, description="Filter work orders by Manufacturing Order ID"),
+    db: Database = Depends(get_db)
 ):
-    """
-    Retrieve a list of all Work Orders.
-    """
-    result = service.get_all_work_orders()
-    return JSONResponse(status_code=result["status_code"], content=result)
+    service = WorkOrderService(db)
+    return service.get_work_orders(mo_id=mo_id)
 
-@router.get("/{item_id}")
-def get_work_order(
-    item_id: str,
-    service: WorkOrderService = Depends(get_work_order_service)
+@router.patch(
+    "/{wo_id}/status",
+    summary="Update Work Order Status (The Trigger)",
+    description="Updates a WO's status. If all WOs for an MO become 'done', the parent MO is automatically completed.",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(RoleChecker([
+        UserRole.OPERATOR, UserRole.MANUFACTURING_MANAGER, UserRole.ADMIN
+    ]))]
+)
+async def update_work_order_status(
+    wo_id: str,
+    update_data: WorkOrderUpdate,
+    db: Database = Depends(get_db)
 ):
-    result = service.get_work_order_by_id(item_id)
-    return JSONResponse(status_code=result["status_code"], content=result)
-
-@router.patch("/{item_id}/status")
-def update_work_order_status(
-    item_id: str,
-    data: UpdateWorkOrderStatusSchema,
-    service: WorkOrderService = Depends(get_work_order_service)
-):
-    result = service.update_work_order_status(item_id, data)
-    return JSONResponse(status_code=result["status_code"], content=result)
+    service = WorkOrderService(db)
+    return await service.update_work_order_status(wo_id, update_data.status)

@@ -1,34 +1,33 @@
+# app/models/wo_model.py
+
 from pydantic import BaseModel, Field
-from typing import Optional
-from enum import Enum
-from .base_model import BaseDBModel, BaseCreateModel
+from typing import Literal
+from app.models.base_model import BaseDBModel # Assuming this base model exists
 
-# Enum for controlled vocabulary for the status field
-class WorkOrderStatus(str, Enum):
-    PLANNED = "Planned"
-    IN_PROGRESS = "In Progress"
-    PAUSED = "Paused"
-    COMPLETED = "Completed"
-    CANCELED = "Canceled"
+class WorkOrderBase(BaseModel):
+    """Base model for a Work Order, containing shared fields."""
+    mo_id: str = Field(..., description="ID of the parent Manufacturing Order")
+    operation_name: str = Field(..., description="Name of the operation (e.g., Assembly, Painting)")
+    work_center_id: str = Field(..., description="Reference to the WorkCenter's ID")
+    status: Literal["pending", "in_progress", "processing", "paused", "done"] = Field(default="pending")
+    sequence: int = Field(default=0, description="The order of this task in the sequence")
 
-class WorkOrder(BaseDBModel):
-    """Work order with complete database fields"""
-    name: str = Field(..., description="The name or title of the work order")
-    manufacturingOrderId: str = Field(..., description="The ID of the parent Manufacturing Order")
-    status: WorkOrderStatus = Field(default=WorkOrderStatus.PLANNED, description="Current status")
-    expectedDuration: int = Field(..., description="Estimated time in minutes")
-    workCenterId: Optional[str] = Field(None, description="Work Center ID where task is performed")
+class WorkOrderInDB(BaseDBModel, WorkOrderBase):
+    """Work Order model as it is stored in the database."""
+    pass
 
-class CreateWorkOrderSchema(BaseCreateModel):
-    """Schema for creating a new work order"""
-    name: str = Field(..., description="The name or title of the work order")
-    manufacturingOrderId: str = Field(..., description="The ID of the parent Manufacturing Order")
-    expectedDuration: int = Field(..., description="Estimated time in minutes")
-    workCenterId: Optional[str] = Field(None, description="Work Center ID where task is performed")
+class WorkOrderUpdate(BaseModel):
+    """Model for updating the status of a Work Order via PATCH request."""
+    status: Literal["pending", "in_progress", "processing", "paused", "done"] = Field(..., description="The new status")
 
-class UpdateWorkOrderStatusSchema(BaseModel):
-    """Schema for updating work order status"""
-    status: WorkOrderStatus = Field(..., description="The new status for the work order")
-
-# Alias for backward compatibility
-WorkOrderResponseSchema = WorkOrder
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "status": "in_progress"
+            }
+        }
+    }
+    
+class StartProcessPayload(BaseModel):
+    """Defines the request body for the endpoint that starts the MO process."""
+    mo_id: str = Field(..., description="The ID of the Manufacturing Order to start.")
