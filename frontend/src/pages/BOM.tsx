@@ -50,7 +50,11 @@ const getProducts = async (token: string): Promise<Product[]> => {
 };
 const getBOMs = async (token: string): Promise<BOM[]> => {
     const response = await fetch(`${API_URL}/api/boms/`, { headers: { Authorization: `Bearer ${token}` } });
-    const result: ApiResponse<BOM[]> = await handleApiResponse(response);
+    if (response.status === 403) {
+        throw new Error('ACCESS_DENIED');
+    }
+    if (!response.ok) throw new Error("Failed to fetch BOMs");
+    const result: ApiResponse<BOM[]> = await response.json();
     return result.data;
 };
 const createBOM = async (bomData: BOMCreate, token: string): Promise<BOM> => {
@@ -283,17 +287,8 @@ const BOM = () => {
   const { token } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: products = [] } = useQuery<Product[], Error>({ queryKey: ["products"], queryFn: () => getProducts(token!), enabled: !!token });
-  const { data: boms = [], isLoading, error } = useQuery<BOM[], Error>({ queryKey: ["boms"], queryFn: () => getBOMs(token!), enabled: !!token });
-
-  // Handle loading and error states
-  if (isLoading) return <div className="text-center p-8">Loading BOMs...</div>;
-  if (error) {
-    if (isAccessDeniedError(error)) {
-      return <AccessDenied resource="Bills of Material" />;
-    }
-    return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
-  }
+  const { data: products = [] } = useQuery<Product[], Error>({ queryKey: ["products"], queryFn: () => getProducts(token!), enabled: !!token, retry: false });
+  const { data: boms = [], isLoading, error } = useQuery<BOM[], Error>({ queryKey: ["boms"], queryFn: () => getBOMs(token!), enabled: !!token, retry: false });
 
   const { mutate: deleteBomMutation } = useMutation({
       mutationFn: (bomId: string) => deleteBOM({ bomId, token: token! }),
@@ -316,6 +311,15 @@ const BOM = () => {
   const filteredBOMs = boms.filter(bom =>
     (products.find(p => p._id === bom.finishedProductId)?.name || bom.finishedProductId).toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Handle loading and error states AFTER all hooks
+  if (isLoading) return <div className="text-center p-8">Loading BOMs...</div>;
+  if (error) {
+    if (error.message === 'ACCESS_DENIED') {
+      return <AccessDenied resource="Bills of Material" />;
+    }
+    return <div className="text-center p-8 text-destructive">Error: {error.message}</div>;
+  }
 
   return (
     <div className="space-y-6">
