@@ -2,7 +2,7 @@ import inspect
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 
-from core.logger import logs
+from app.core.logger import logs
 from app.service.analytics_service import AnalyticsService
 from app.utils.response_model import response
 from app.models.analytics_model import ProductionThroughput
