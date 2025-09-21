@@ -54,28 +54,3 @@ async def get_stock_ledger_history(request: Request, stock_ledger_service: Stock
         logs.define_logger(level=logging.ERROR, message=f"Error getting stock ledger history: {e}", loggName=log_info, pid=os.getpid(), request=request)
         final_response = response.failure(message=f"An unexpected error occurred: {e}")
         return JSONResponse(status_code=500, content=final_response)
-
-@router.get("/availability", summary="Get Current Stock Availability")
-async def get_stock_availability(request: Request, stock_ledger_service: StockLedgerService = Depends(get_stock_ledger_service)):
-    """
-    Provides a real-time summary of the current stock level for every product.
-    This is calculated by summing all historical movements.
-    """
-    log_info = inspect.stack()[0]
-    logs.define_logger(level=logging.INFO, message="Fetching current stock availability...", loggName=log_info, pid=os.getpid(), request=request)
-    try:
-        availability = await stock_ledger_service.get_current_stock_levels()
-        # Serialize datetime fields (if availability ever contains any datetimes)
-        availability = ensure_serializable(availability)
-
-        final_response = response.success(
-            data=availability,
-            message="Current stock availability retrieved successfully"
-        )
-        logs.define_logger(level=logging.INFO, message="Stock availability fetched successfully.", loggName=log_info, pid=os.getpid(), request=request)
-        return JSONResponse(status_code=200, content=final_response)
-
-    except Exception as e:
-        logs.define_logger(level=logging.ERROR, message=f"Error getting stock availability: {e}", loggName=log_info, pid=os.getpid(), request=request)
-        final_response = response.failure(message=f"An unexpected error occurred: {e}")
-        return JSONResponse(status_code=500, content=final_response)
